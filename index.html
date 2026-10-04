@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
 <title>PermitClear</title>
 <style>
 :root{--bg:#f6f8f7;--card:#fff;--ink:#173128;--muted:#66736e;--line:#dce4e0;--green:#1f6249;--soft:#edf5f1;--warn:#fff6df;--blue:#eef4fb}
@@ -27,7 +28,7 @@ a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:v
 </div></header>
 
 <main class="wrap">
-<div class="notice"><b>Beta testing version.</b> Research preview only — not an official permit determination. Always confirm final requirements with the responsible local authority.</div>
+<div class="notice"><b>Private beta testing version.</b> PermitClear is currently intended only for limited product testing, not public promotion or reliance. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
 
 <section class="card">
 <h2>Try a quick example</h2>
@@ -72,17 +73,19 @@ a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:v
 <div class="card"><h2>Most relevant policy sources</h2><div id="policies"></div></div>
 <div class="card"><h2>Suggested next steps</h2><div id="next"></div></div>
 </div>
-<div class="card"><h2>Focused permit paths</h2><div id="paths"></div></div>
+<div class="card"><h2>Permit review priority</h2>
+<div class="muted" style="margin-bottom:8px">Priority reflects the facts you entered, not legal certainty.</div>
+<div id="paths"></div></div>
 <div class="card"><h2>Source freshness</h2><div id="freshness"></div></div>
 </section>
 
 <section class="card">
 <h2>About the data</h2>
-<div class="muted">PermitClear is a beta testing tool. Results are generated from public government pages, official municipal-code sources, and public agency guidance. Bainbridge Island / Kitsap currently has the deepest local policy coverage. Sources are monitored for availability and changes, but users should always confirm current requirements with the responsible agency.</div>
+<div class="muted">PermitClear is a limited beta testing tool. Results are generated from public government pages, official municipal-code sources, and public agency guidance. Bainbridge Island / Kitsap currently has the deepest local policy coverage. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
 </section>
 </main>
 
-<footer>PermitClear · Clear steps, fewer surprises · Official sources remain controlling.</footer>
+<footer>PermitClear · Limited beta testing only · Not for public promotion · Official sources remain controlling.</footer>
 
 <script>
 const S={
@@ -225,7 +228,42 @@ async function preview(){
  document.getElementById('why').innerHTML=why.join('');
  document.getElementById('policies').innerHTML=pol.join('');
  document.getElementById('next').innerHTML=next.map((x,i)=>step(i+1,x)).join('');
- document.getElementById('paths').innerHTML=paths.length?paths.map(x=>'<div class="item"><span class="tag">LIKELY</span>'+x+'</div>').join(''):'<div class="muted">No specific path detected yet.</div>';
+ {
+   const primary=[], secondary=[];
+   if(land) primary.push('Planning / zoning review');
+   if(physical) primary.push('Building / construction review');
+   if(grading) primary.push('Grading / site-work review');
+   if(septic) secondary.push('Onsite sewage / health review');
+   if(food) secondary.push('Food-safety review');
+   if(electrical) secondary.push('Electrical review');
+   if(critical) secondary.push('Critical-area / environmental review');
+   if(shoreline) secondary.push('Shoreline review');
+   if(cup) secondary.push('Conditional-use review');
+   if(variance) secondary.push('Variance review');
+   if(landdivision) secondary.push('Boundary / subdivision review');
+   if(started) primary.push('Corrective / after-the-fact review');
+
+   let html='';
+   if(primary.length){
+     html+='<div class="smallcaps">Most likely to review first</div>'+
+       primary.map(x=>'<div class="item"><span class="tag">FIRST</span>'+x+'</div>').join('');
+   }
+   if(secondary.length){
+     html+='<div class="smallcaps" style="margin-top:12px">May also apply</div>'+
+       secondary.map(x=>'<div class="item"><span class="tag">POSSIBLE</span>'+x+'</div>').join('');
+   }
+   const notIndicated=[];
+   if(!shoreline) notIndicated.push('Shoreline review');
+   if(!critical) notIndicated.push('Critical-area review');
+   if(!food) notIndicated.push('Food-safety review');
+   if(!septic) notIndicated.push('Onsite sewage review');
+   if(notIndicated.length){
+     html+='<details style="margin-top:12px"><summary>Not indicated by current answers</summary>'+
+       notIndicated.map(x=>'<div class="item"><span class="muted">'+x+'</span></div>').join('')+
+       '<div class="hint">This does not mean the review is legally excluded. New property facts can change the result.</div></details>';
+   }
+   document.getElementById('paths').innerHTML=html||'<div class="muted">No specific review path detected yet.</div>';
+ }
  const checks=Object.entries(freshness);
  document.getElementById('freshness').innerHTML=checks.length?checks.slice(0,8).map(([k,s])=>row(S[k]?.n||k,(s.ok?'Reachable':'Needs review')+(s.changed?' · content changed':'')+(s.checked_at?' · '+new Date(s.checked_at).toLocaleString():''))).join(''):'<div class="muted">Source monitor status will appear after the first scheduled check.</div>';
  document.getElementById('results').style.display='block';document.getElementById('results').scrollIntoView({behavior:'smooth'});
