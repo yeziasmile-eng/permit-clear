@@ -1,224 +1,200 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>City Permitting Preview Helper</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PermitClear</title>
 <style>
-:root{--bg:#f5f7f6;--card:#fff;--ink:#183128;--muted:#66736e;--line:#dbe3df;--green:#1f6249;--soft:#edf5f1;--warn:#fff6df;--blue:#edf4fb}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-header{background:#173d31;color:#fff;padding:30px 18px}.wrap{max-width:980px;margin:auto}h1{margin:0 0 8px;font-size:30px}.lead{font-size:16px;opacity:.92;max-width:760px}
-main{padding:20px 16px 56px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
-label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}input,textarea{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:130px;resize:vertical}
-button{background:var(--green);color:#fff;border:0;border-radius:10px;padding:12px 16px;font-weight:750;cursor:pointer;margin-top:12px}.hint,.muted{font-size:13px;color:var(--muted)}.notice{background:var(--warn);border:1px solid #ead8ad;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:16px}
+:root{--bg:#f6f8f7;--card:#fff;--ink:#173128;--muted:#66736e;--line:#dce4e0;--green:#1f6249;--soft:#edf5f1;--warn:#fff6df;--blue:#eef4fb}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#173d31;color:white;padding:34px 18px}.wrap{max-width:980px;margin:auto}h1{font-size:34px;margin:0 0 6px}.lead{max-width:760px;font-size:17px;opacity:.94}
+main{padding:20px 16px 56px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.notice{background:var(--warn);border:1px solid #ead8ad;border-radius:10px;padding:10px 12px;font-size:13px}
+label{display:block;font-weight:750;font-size:13px;margin:13px 0 6px}input,textarea{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:120px}
+button{border:0;border-radius:10px;background:var(--green);color:white;padding:12px 16px;font-weight:800;cursor:pointer;margin-top:12px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.chip{margin:0;background:#fff;color:var(--green);border:1px solid #c9d7d0;padding:8px 11px;border-radius:999px;font-size:13px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
-h2{font-size:18px;margin:0 0 10px}.item{padding:10px 0;border-top:1px solid #edf0ee}.item:first-child{border-top:0}.title{font-weight:750}.tag{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800;margin-right:6px;background:var(--soft);color:var(--green)}
-a{color:#315d8a}.empty{color:var(--muted);font-size:13px}.step{display:flex;gap:8px;align-items:flex-start}.n{min-width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--blue);font-size:12px;font-weight:800}
-.heroresult{background:var(--soft);border:1px solid #cfe0d8}.big{font-size:22px;font-weight:800;margin:3px 0}.smallcaps{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:700}
-footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
-</style>
-</head>
+h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)}.item{padding:10px 0;border-top:1px solid #edf0ee}.item:first-child{border-top:0}.title{font-weight:780}
+.tag{display:inline-block;font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--soft);color:var(--green);margin-right:6px}.tag.warn{background:var(--warn);color:#765d00}
+.hero{background:var(--soft);border-color:#cfe0d8}.big{font-size:22px;font-weight:850}.smallcaps{text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:800;color:var(--muted)}
+.step{display:flex;gap:8px;align-items:flex-start}.n{min-width:24px;height:24px;border-radius:50%;background:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.example{border-left:4px solid var(--green);padding-left:14px}.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.trust>div{background:#fafcfb;border:1px solid var(--line);border-radius:10px;padding:12px}@media(max-width:760px){.trust{grid-template-columns:1fr}}
+a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
+</style></head>
 <body>
 <header><div class="wrap">
-<h1>City Permitting Preview Helper</h1>
-<div class="lead">Enter a location and what you want to do. Get a simple preview of who may be involved, where to look for the rules, and what to do next.</div>
+<h1>PermitClear</h1>
+<div class="lead">Tell us what you want to do. We narrow the scope, identify likely agencies, and point you to the most relevant official policy sources.</div>
 </div></header>
 
 <main class="wrap">
-<div class="notice">Preview only — not an official permit determination. Nationwide V1 identifies the likely city/state from a U.S. ZIP code and routes you to major municipal-code sources. Detailed local policy packs are added jurisdiction by jurisdiction.</div>
+<div class="notice"><b>Research preview only.</b> PermitClear is not an official permit determination. Always confirm final requirements with the local authority.</div>
 
 <section class="card">
-<h2>Tell us about your project</h2>
-<label for="location">1. Property address or ZIP code</label>
+<h2>Try a quick example</h2>
+<div class="example">
+<div class="title">Example: Add an ADU in Seattle</div>
+<div class="muted">PermitClear would narrow the question into land-use, building, utility/site and occupancy issues before showing the policy sources most likely to matter.</div>
+<button class="chip" onclick="loadExample()">Use this example</button>
+</div>
+</section>
+
+<section class="card">
+<h2>1 · Tell us about your project</h2>
+<label>Property address or ZIP code</label>
 <input id="location" placeholder="Example: 98110 or 123 Main St, Seattle, WA 98101">
-<div class="hint">For the most reliable nationwide match, include a 5-digit ZIP code.</div>
-
-<label for="caseNo">2. Case / permit number <span class="muted">(optional)</span></label>
+<label>Existing case / permit number <span class="muted">(optional)</span></label>
 <input id="caseNo" placeholder="Example: PLN52112 or BLD27414">
+<label>What are you trying to do?</label>
+<div class="chips">
+<button class="chip" onclick="fillProject('Add an ADU or building addition')">Add / ADU</button>
+<button class="chip" onclick="fillProject('Build or replace a fence')">Fence</button>
+<button class="chip" onclick="fillProject('Open a small business or retail use')">Open a business</button>
+<button class="chip" onclick="fillProject('Add or modify electrical wiring or a panel')">Electrical</button>
+<button class="chip" onclick="fillProject('Grade, fill, pave, or change drainage on the site')">Grading / site work</button>
+<button class="chip" onclick="fillProject('Open a farm stand or host farm visitors')">Farm / visitors</button>
+</div>
+<textarea id="caseText" placeholder="Describe the project in plain language..."></textarea>
+<button onclick="buildQuestions()">Narrow my scope</button>
+</section>
 
-<label for="caseText">3. What are you trying to do?</label>
-<textarea id="caseText" placeholder="Example: Add a deck, remodel a commercial space, divide a lot, install a new septic system, open a farm stand..."></textarea>
-
-<button id="previewBtn" onclick="preview()">Preview permits & policies</button>
+<section class="card" id="questionsCard" style="display:none">
+<h2>2 · A few questions to narrow the rules</h2>
+<div class="hint">We only ask questions that can change the permit path.</div>
+<div id="questions"></div>
+<button onclick="preview()">Show focused preview</button>
 </section>
 
 <section id="results" style="display:none">
-<div class="card heroresult">
-<div class="smallcaps">Likely jurisdiction</div>
-<div class="big" id="jurisdictionName">—</div>
-<div class="muted" id="jurisdictionNote"></div>
-</div>
-
+<div class="card hero"><div class="smallcaps">Likely jurisdiction</div><div class="big" id="jurisdictionName">—</div><div class="muted" id="jurisdictionNote"></div></div>
 <div class="grid">
 <div class="card"><h2>Who may be involved</h2><div id="departments"></div></div>
 <div class="card"><h2>Why they may be involved</h2><div id="why"></div></div>
-<div class="card"><h2>Where to look for the rules</h2><div id="policies"></div></div>
+<div class="card"><h2>Most relevant policy sources</h2><div id="policies"></div></div>
 <div class="card"><h2>Suggested next steps</h2><div id="next"></div></div>
 </div>
+<div class="card"><h2>Focused permit paths</h2><div id="paths"></div></div>
+<div class="card"><h2>Source freshness</h2><div id="freshness"></div></div>
+</section>
 
 <section class="card">
-<h2>Simple permit preview</h2>
-<div id="paths"></div>
-<details>
-<summary>Show technical details</summary>
-<div id="technical" style="margin-top:10px"></div>
-</details>
-</section>
+<h2>Why trust PermitClear?</h2>
+<div class="trust">
+<div><div class="title">Official sources first</div><div class="muted">We prioritize city, county, state and official municipal-code sources.</div></div>
+<div><div class="title">Daily source monitoring</div><div class="muted">Known source pages are checked daily for reachability and content changes.</div></div>
+<div><div class="title">Deep local packs</div><div class="muted">Nationwide routing is broad; detailed policy interpretation is added jurisdiction by jurisdiction. Bainbridge Island / Kitsap is the first deep local pack.</div></div>
+</div>
+<div class="hint" style="margin-top:10px">Built by PermitClear as an independent civic-tech research tool. Policy sources are not replaced by staff emails or private correspondence.</div>
 </section>
 </main>
 
-<footer>City Permitting Preview Helper · Nationwide V1 · Research aid only. Always confirm current requirements with the local permitting authority.</footer>
+<footer>PermitClear · Clear steps, fewer surprises · Official sources remain controlling.</footer>
 
 <script>
 const S={
- municode:'https://library.municode.com/',
- ecode:'https://ecode360.com/',
- amlegal:'https://codelibrary.amlegal.com/',
- permitting:'https://www.bainbridgewa.gov/1287/Permitting',
- planning:'https://www.bainbridgewa.gov/1177/Planning-Division',
- building:'https://www.bainbridgewa.gov/157/Building-Division',
- publicrecords:'https://www.bainbridgewa.gov/163/Public-Records',
- home:'https://ecode360.com/50274970',
- procedures:'https://ecode360.com/50262610',
- rue:'https://ecode360.com/50273273',
- critical:'https://ecode360.com/50273021',
- kpbc:'https://www.kitsappublichealth.org/dwos/bc',
- kpfood:'https://www.kitsappublichealth.org/fle/newestablishments',
- lni:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections'
+ municode:{u:'https://library.municode.com/',n:'Municode Library'},
+ ecode:{u:'https://ecode360.com/',n:'eCode360'},
+ amlegal:{u:'https://codelibrary.amlegal.com/',n:'American Legal Publishing'},
+ permitting:{u:'https://www.bainbridgewa.gov/1287/Permitting',n:'Bainbridge Island Permitting'},
+ planning:{u:'https://www.bainbridgewa.gov/1177/Planning-Division',n:'Bainbridge Island Planning'},
+ building:{u:'https://www.bainbridgewa.gov/157/Building-Division',n:'Bainbridge Island Building'},
+ publicrecords:{u:'https://www.bainbridgewa.gov/163/Public-Records',n:'Bainbridge Island Public Records'},
+ home:{u:'https://ecode360.com/50274970',n:'BIMC Home Occupation'},
+ procedures:{u:'https://ecode360.com/50262610',n:'BIMC Procedures'},
+ critical:{u:'https://ecode360.com/50273021',n:'BIMC Critical Areas'},
+ kpbc:{u:'https://www.kitsappublichealth.org/dwos/bc',n:'Kitsap Public Health Building Clearance'},
+ kpfood:{u:'https://www.kitsappublichealth.org/fle/newestablishments',n:'Kitsap Public Health Food Safety'},
+ lni:{u:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections',n:'WA L&I Electrical Permits'}
 };
+let freshness={};
+fetch('source-status.json?x='+Date.now()).then(r=>r.ok?r.json():{}).then(d=>freshness=d.sources||{}).catch(()=>{});
 
-function row(title,text,link,label){
- return '<div class="item"><div class="title">'+title+'</div><div class="muted">'+text+'</div>'+(link?'<div class="muted"><a target="_blank" rel="noopener" href="'+link+'">'+(label||'Official source')+'</a></div>':'')+'</div>';
-}
-function step(n,text){return '<div class="item step"><span class="n">'+n+'</span><div>'+text+'</div></div>'}
-function getZip(loc){
- const m=loc.match(/\b(\d{5})(?:-\d{4})?\b/); return m?m[1]:'';
-}
-async function resolveZip(zip){
- if(!zip) return null;
- try{
-   const r=await fetch('https://api.zippopotam.us/us/'+encodeURIComponent(zip));
-   if(!r.ok) return null;
-   const d=await r.json();
-   const p=d.places&&d.places[0];
-   if(!p) return null;
-   return {city:p['place name'],state:p['state'],abbr:p['state abbreviation'],zip:zip};
- }catch(e){return null}
+function fillProject(x){document.getElementById('caseText').value=x}
+function loadExample(){document.getElementById('location').value='Seattle, WA 98101';document.getElementById('caseText').value='Add an ADU in the backyard of an existing home';window.scrollTo({top:document.getElementById('location').offsetTop-80,behavior:'smooth'})}
+function getZip(s){const m=s.match(/\b(\d{5})(?:-\d{4})?\b/);return m?m[1]:''}
+async function resolveZip(z){if(!z)return null;try{const r=await fetch('https://api.zippopotam.us/us/'+z);if(!r.ok)return null;const d=await r.json(),p=d.places&&d.places[0];return p?{city:p['place name'],state:p['state'],abbr:p['state abbreviation'],zip:z}:null}catch(e){return null}}
+function ask(k,t){return '<div class="item"><div class="title">'+t+'</div><label><input type="radio" name="'+k+'" value="Yes"> Yes</label> <label><input type="radio" name="'+k+'" value="No"> No</label> <label><input type="radio" name="'+k+'" value="Not sure" checked> Not sure</label></div>'}
+function v(k){const e=document.querySelector('input[name="'+k+'"]:checked');return e?e.value:'Not sure'}
+function y(k){return v(k)==='Yes'}
+function row(t,d){return '<div class="item"><div class="title">'+t+'</div><div class="muted">'+d+'</div></div>'}
+function linkrow(k,t,d){const s=S[k],st=freshness[k]||{};let badge=st.changed?'<span class="tag warn">SOURCE CHANGED</span>':'<span class="tag">OFFICIAL SOURCE</span>';const ck=st.checked_at?' · checked '+new Date(st.checked_at).toLocaleDateString():'';return '<div class="item"><div class="title">'+badge+t+'</div><div class="muted">'+d+ck+'</div><div class="muted"><a target="_blank" rel="noopener" href="'+s.u+'">Open source</a></div></div>'}
+function step(n,t){return '<div class="item step"><span class="n">'+n+'</span><div>'+t+'</div></div>'}
+
+function buildQuestions(){
+ const t=document.getElementById('caseText').value.trim();
+ if(!t){alert('Please describe the project first.');return}
+ let q=ask('physical','Will you build, add, remove, or structurally alter something?')+
+ ask('usechange','Will the activity or occupancy be different from the current approved use?')+
+ ask('public','Will customers, visitors, students, guests, or the public come to the property?');
+ if(/food|restaurant|kitchen|farm|produce|market|cafe/i.test(t))q+=ask('food','Will food be prepared, cut, packaged, stored for sale, or served?');
+ if(/grade|fill|pav|gravel|rockery|driveway|drain|site|slope/i.test(t))q+=ask('grading','Will soil, fill, paving, drainage, rockery, or site grades change?');
+ if(/septic|well|bathroom|bedroom|addition|adu|restaurant/i.test(t))q+=ask('septic','Is the property served by septic / onsite sewage?');
+ if(/wetland|stream|shoreline|slope|critical|flood|waterfront/i.test(t))q+=ask('critical','Is the work near shoreline, wetland, stream, steep slope, flood area, or another critical area?');
+ if(/electric|panel|charger|generator|wiring/i.test(t))q+=ask('electrical','Will electrical wiring, a panel, EV charger, generator, or service change?');
+ q+=ask('started','Has any of the work already started or been completed?');
+ document.getElementById('questions').innerHTML=q;
+ document.getElementById('questionsCard').style.display='block';
+ document.getElementById('questionsCard').scrollIntoView({behavior:'smooth'});
 }
 
 async function preview(){
- const loc=document.getElementById('location').value.trim();
- const caseNo=document.getElementById('caseNo').value.trim();
- const t=document.getElementById('caseText').value.trim();
- if(!loc&&!t&&!caseNo){alert('Please enter a location or project description.');return}
+ const loc=document.getElementById('location').value.trim(),t=document.getElementById('caseText').value.trim(),caseNo=document.getElementById('caseNo').value.trim();
+ const zip=getZip(loc),geo=await resolveZip(zip),bi=zip==='98110'||/bainbridge island/i.test(loc);
+ const physical=y('physical'),usechange=y('usechange'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),electrical=y('electrical'),started=y('started');
+ const land=usechange||publicUse||/zoning|variance|subdivision|farm|retail|home occupation|shoreline|critical/i.test(t);
+ let j='Jurisdiction needs confirmation',jn='Include a 5-digit ZIP code and confirm city limits vs. unincorporated county.';
+ if(geo){j=geo.city+', '+geo.abbr+' · '+geo.zip;jn='ZIP-level match; exact permitting authority still needs address-level confirmation.'}
+ else if(bi){j='Bainbridge Island, WA · 98110';jn='Deep local policy pack available.'}
+ document.getElementById('jurisdictionName').textContent=j;document.getElementById('jurisdictionNote').textContent=jn;
 
- const btn=document.getElementById('previewBtn');
- btn.disabled=true; btn.textContent='Checking location...';
- const zip=getZip(loc);
- let geo=await resolveZip(zip);
- btn.disabled=false; btn.textContent='Preview permits & policies';
-
- const bi=(zip==='98110')||/bainbridge island/i.test(loc);
- if(bi && !geo) geo={city:'Bainbridge Island',state:'Washington',abbr:'WA',zip:'98110'};
-
- let jName='Jurisdiction needs confirmation';
- let jNote='Add a 5-digit ZIP code for automatic city/state matching.';
- if(geo){jName=geo.city+', '+geo.abbr+' · '+geo.zip;jNote='ZIP-level location match. Always confirm city limits vs. unincorporated county before filing.'}
- else if(loc){jName=loc;jNote='Location entered, but no ZIP-level match was available. Confirm the local city/county authority.'}
-
- document.getElementById('jurisdictionName').textContent=jName;
- document.getElementById('jurisdictionNote').textContent=jNote;
- document.getElementById('results').style.display='block';
-
- const land=/\b(zoning|setback|variance|subdivision|lot line|boundary line|CUP|conditional use|shoreline|wetland|critical area|farm|farm stand|u[- ]?pick|home occupation|event|retail|change of use)\b/i.test(t);
- const build=/\b(deck|addition|remodel|alteration|building|structure|roof|tenant improvement|commercial kitchen)\b/i.test(t);
- const site=/\b(grading|grade|fill|paver|rockery|gravel|stormwater|driveway|right of way|steep slope)\b/i.test(t);
- const septic=/\b(septic|onsite sewage|drainfield|reserve area|well)\b/i.test(t);
- const food=/\b(food service|prepare food|package food|cut fruit|restaurant|commercial kitchen|serve food)\b/i.test(t);
- const electrical=/\b(electrical|wiring|panel|EV charger|generator)\b/i.test(t);
- const fire=/\b(fire|sprinkler|assembly|occupancy load|large event)\b/i.test(t);
- const appeal=/\b(appeal|SEPA|remand|hearing examiner)\b/i.test(t);
- const shoreline=/\b(shoreline|bulkhead|SCUP|SVAR|SSDP|OHWM)\b/i.test(t);
- const critical=/\b(wetland|stream|steep slope|critical area|buffer|geologic hazard|flood hazard)\b/i.test(t);
-
- const deps=[],whys=[],policies=[],next=[],paths=[],tech=[];
-
+ const deps=[],why=[],pol=[],next=[],paths=[];
  if(bi){
-   deps.push(row('City Permitting Division','Best starting point for application intake, completeness, routing and corrections.',S.permitting));
-   whys.push(row('Permitting','Coordinates the application process and routes the project to other reviewers.',S.permitting));
-   policies.push(row('Bainbridge Island permitting','Official local permit process and application guidance.',S.permitting));
-   if(land||!t){deps.push(row('Planning Division','Land use, zoning, setbacks, variances, subdivisions, shoreline and critical areas.',S.planning));whys.push(row('Planning','Checks whether the proposed use and location are allowed.',S.planning));}
-   if(build||!t){deps.push(row('Building Division','Building permits, construction-code compliance and inspections.',S.building));whys.push(row('Building','Reviews the physical construction work.',S.building));}
-   if(site){deps.push(row('Development Engineering / Public Works','Grading, stormwater, access, right-of-way and site engineering.','https://www.bainbridgewa.gov/154/Planning-Community-Development'));whys.push(row('Site / engineering','Site work can require separate review from the building itself.'))}
-   if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage, building clearance, reserve area and site-plan coordination.',S.kpbc));whys.push(row('Health — septic','Onsite sewage can trigger county health review before or alongside city permits.',S.kpbc));policies.push(row('Kitsap Public Health — septic / building clearance','Check drainfield, reserve-area and site-plan requirements.',S.kpbc));}
-   if(food){deps.push(row('Kitsap Public Health — Food Safety','Food establishment plan review and food permitting.',S.kpfood));whys.push(row('Health — food','Prepared, packaged, stored or served food can trigger separate health review.',S.kpfood));}
-   if(electrical){deps.push(row('Washington State Labor & Industries','Electrical permits and inspections.',S.lni));whys.push(row('Electrical','Electrical work can be permitted by the state rather than the city.',S.lni));}
-   if(caseNo){policies.unshift(row('Existing case / permit record','Search the official local records using '+caseNo+'.',S.publicrecords));}
+   deps.push(row('City Permitting Division','Starting point for intake and routing.'));
+   pol.push(linkrow('permitting','Bainbridge permitting','Official permit guidance.'));
+   if(land){deps.push(row('Planning Division','Land use, zoning and environmental review.'));why.push(row('Planning review','Your answers indicate the project may affect use, visitors, zoning, or environmental constraints.'));pol.push(linkrow('planning','Planning Division','Official planning source.'))}
+   if(physical){deps.push(row('Building Division','Construction permits and inspections.'));why.push(row('Building review','You indicated physical construction or alteration.'));pol.push(linkrow('building','Building Division','Official building source.'))}
+   if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage / building clearance.'));why.push(row('Health review','You indicated septic may serve the property.'));pol.push(linkrow('kpbc','Kitsap building clearance','Official health-district source.'))}
+   if(food){deps.push(row('Kitsap Public Health — Food Safety','Food establishment review.'));pol.push(linkrow('kpfood','Kitsap food safety','Official health-district source.'))}
+   if(electrical){deps.push(row('Washington State L&I','Electrical permits and inspections.'));pol.push(linkrow('lni','WA electrical permits','Official state source.'))}
+   if(/home occupation/i.test(t))pol.push(linkrow('home','Home occupation code','Relevant local code section.'));
+   if(critical)pol.push(linkrow('critical','Critical Areas code','Relevant local code section.'));
  }else{
-   deps.push(row('Local Planning / Zoning','Land use, zoning, setbacks, subdivisions, shoreline/floodplain and environmental constraints.'));
-   if(build||!t) deps.push(row('Local Building Department','Construction permits, adopted building codes and inspections.'));
-   if(site) deps.push(row('Public Works / Development Engineering','Grading, stormwater, access and right-of-way.'));
-   if(septic||food) deps.push(row('County / Regional Health Department','Onsite sewage, water and/or food-establishment requirements.'));
-   if(electrical) deps.push(row('State / local electrical authority','Electrical permits and inspections.'));
-   if(fire) deps.push(row('Fire Marshal / Fire Department','Fire-code, access, occupancy and life-safety review.'));
-
-   whys.push(row('Planning / zoning first','Many projects fail early because the proposed use or site condition is not resolved before construction review.'));
-   if(build) whys.push(row('Building review','Construction approval is separate from whether the land use itself is allowed.'));
-   if(site) whys.push(row('Engineering review','Grading, drainage and access can trigger separate permits.'));
-   if(septic||food) whys.push(row('Health review','County or regional health agencies often control septic and food-safety approvals.'));
+   deps.push(row('Local Planning / Zoning','Confirm allowed use, setbacks and environmental constraints.'));
+   if(physical)deps.push(row('Local Building Department','Confirm construction permits and inspections.'));
+   if(grading)deps.push(row('Public Works / Development Engineering','Confirm grading, drainage and access requirements.'));
+   if(septic||food)deps.push(row('County / Regional Health Department','Confirm septic and/or food requirements.'));
+   if(electrical)deps.push(row('State / local electrical authority','Confirm electrical permit authority.'));
+   why.push(row('Nationwide routing','PermitClear can narrow the likely departments now, but detailed policy interpretation requires a local policy pack.'));
+   pol.push(linkrow('municode','Municode Library','Municipal-code discovery.'));
+   pol.push(linkrow('ecode','eCode360','Municipal-code discovery.'));
+   pol.push(linkrow('amlegal','American Legal Publishing','Municipal-code discovery.'));
  }
+ next.push('Confirm the exact permitting jurisdiction for the property.');
+ if(caseNo)next.push('Open the existing permit/case record first so the new question matches facts already on file.');
+ if(land)next.push('Resolve land-use classification before assuming a construction permit type.');
+ if(physical)next.push('Separate building approval from land-use approval; one project can require both.');
+ if(grading)next.push('Quantify grading/fill/paving and prepare a simple site plan.');
+ if(septic)next.push('Use the same project scope and site plan with both the health agency and local permitting authority.');
+ if(food)next.push('Clarify exactly how food will be prepared, packaged, stored or served.');
+ if(started)next.push('Ask whether after-the-fact review or corrective permits are required before doing more work.');
 
- // Nationwide code-source routing
- policies.push(row('Municode Library','Search municipal codes and ordinances nationwide.',S.municode,'Search Municode'));
- policies.push(row('eCode360','Search municipal codes; many communities can be located by municipality name or ZIP.',S.ecode,'Search eCode360'));
- policies.push(row('American Legal Publishing','Search another major U.S. municipal-code library.',S.amlegal,'Search American Legal'));
+ if(physical)paths.push('Building / construction review');
+ if(land)paths.push('Land-use / zoning review');
+ if(grading)paths.push('Grading / site-work review');
+ if(septic)paths.push('Onsite sewage / health review');
+ if(food)paths.push('Food-safety review');
+ if(electrical)paths.push('Electrical review');
+ if(critical)paths.push('Critical-area / environmental review');
+ if(started)paths.push('After-the-fact / corrective review');
 
- if(caseNo&&!bi) next.push('Look up the existing case number in the local city/county permit portal before starting a new application.');
- if(!t) next.push('Add a short description of what you want to do so the preview can narrow the departments.');
- else{
-   next.push('Confirm the exact city vs. unincorporated-county jurisdiction for the property.');
-   next.push('Search the municipality name in the three code libraries above and use the official city/county source when available.');
-   if(land) next.push('Resolve land-use classification before assuming which construction permit is needed.');
-   if(build) next.push('Separate land-use approval from the building permit; one project can require both.');
-   if(site) next.push('Quantify grading/fill/site work and prepare a simple site plan.');
-   if(septic) next.push('Coordinate the same project scope and site plan with the health department and the local permitting agency.');
-   if(food) next.push('Clarify whether food is whole/unprocessed or prepared, cut, packaged, stored or served.');
- }
-
- if(/home occupation|home business/i.test(t)) paths.push('Home occupation screening');
- if(/farm|orchard|farm stand|u[- ]?pick|agricultur/i.test(t)) paths.push('Agricultural use / farm activity screening');
- if(/farm stand|sell|retail/i.test(t)) paths.push('Accessory agricultural retail screening');
- if(/deck/i.test(t)) paths.push('Deck permit screening');
- if(site) paths.push('Grading / site-work screening');
- if(/commercial|tenant improvement|change of use/i.test(t)) paths.push('Commercial occupancy / change-of-use screening');
- if(/variance|setback relief/i.test(t)) paths.push('Variance review');
- if(/boundary line|BLA|lot line/i.test(t)) paths.push('Boundary Line Adjustment review');
- if(/subdivision|short plat|long plat|plat vacation/i.test(t)) paths.push('Subdivision / plat review');
- if(/conditional use|CUP|special use/i.test(t)) paths.push('Conditional Use / Special Use review');
- if(shoreline) paths.push('Shoreline review');
- if(critical) paths.push('Critical Areas review');
- if(appeal) paths.push('SEPA / Appeal / Hearing Examiner review');
- if(/after[- ]the[- ]fact|unpermitted|R-AFT/i.test(t)) paths.push('After-the-Fact building review');
-
- if(geo) tech.push(row('ZIP resolver',geo.city+', '+geo.state+' ('+geo.zip+').'));
- tech.push(row('Nationwide source strategy','Use local official sources first; Municode, eCode360 and American Legal are discovery layers, not substitutes for the municipality.'));
- if(bi){
-   tech.push(row('Local policy pack','Bainbridge Island / Kitsap enhanced rules are loaded.'));
-   if(/home occupation|home business/i.test(t)) tech.push(row('Home occupation code','Minor home occupation criteria may apply.',S.home));
-   if(/variance|subdivision|boundary line|BLA|conditional use|CUP|appeal|SEPA/i.test(t)) tech.push(row('Land-use procedures','Check the applicable local review procedure.',S.procedures));
-   if(/reasonable use|RUE/i.test(t)) tech.push(row('Reasonable Use Exception','Critical-area reasonable-use review may apply.',S.rue));
-   if(critical) tech.push(row('Critical areas','Confirm buffers, mitigation and required reports.',S.critical));
- }
-
- document.getElementById('departments').innerHTML=deps.join('')||'<div class="empty">No department identified yet.</div>';
- document.getElementById('why').innerHTML=whys.join('')||'<div class="empty">Add more project details.</div>';
- document.getElementById('policies').innerHTML=policies.join('');
+ const used=Object.keys(S).filter(k=>document.getElementById('policies').innerHTML.includes(S[k]?.n||''));
+ document.getElementById('departments').innerHTML=deps.join('');
+ document.getElementById('why').innerHTML=why.join('');
+ document.getElementById('policies').innerHTML=pol.join('');
  document.getElementById('next').innerHTML=next.map((x,i)=>step(i+1,x)).join('');
- document.getElementById('paths').innerHTML=paths.length?paths.map(x=>'<div class="item"><span class="tag">PREVIEW</span>'+x+'</div>').join(''):'<div class="empty">No specific permit path detected yet. Add more project details.</div>';
- document.getElementById('technical').innerHTML=tech.join('');
- window.scrollTo({top:document.getElementById('results').offsetTop-10,behavior:'smooth'});
+ document.getElementById('paths').innerHTML=paths.length?paths.map(x=>'<div class="item"><span class="tag">LIKELY</span>'+x+'</div>').join(''):'<div class="muted">No specific path detected yet.</div>';
+ const checks=Object.entries(freshness);
+ document.getElementById('freshness').innerHTML=checks.length?checks.slice(0,8).map(([k,s])=>row(S[k]?.n||k,(s.ok?'Reachable':'Needs review')+(s.changed?' · content changed':'')+(s.checked_at?' · '+new Date(s.checked_at).toLocaleString():''))).join(''):'<div class="muted">Source monitor status will appear after the first scheduled check.</div>';
+ document.getElementById('results').style.display='block';document.getElementById('results').scrollIntoView({behavior:'smooth'});
 }
 </script>
-</body>
-</html>
+</body></html>
