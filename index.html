@@ -141,6 +141,10 @@ function buildQuestions(){
  if(/grade|fill|pav|gravel|rockery|driveway|drain|site|slope/i.test(t))q+=ask('grading','Will soil, fill, paving, drainage, rockery, or site grades change?');
  if(/septic|well|bathroom|bedroom|addition|adu|restaurant/i.test(t))q+=ask('septic','Is the property served by septic / onsite sewage?');
  if(/wetland|stream|shoreline|slope|critical|flood|waterfront/i.test(t))q+=ask('critical','Is the work near shoreline, wetland, stream, steep slope, flood area, or another critical area?');
+ if(/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t))q+=ask('shoreline','Is the property within shoreline jurisdiction or close to the ordinary high water mark?');
+ if(/variance|setback relief|hardship/i.test(t))q+=ask('variance','Are you asking for relief from a zoning or dimensional standard because of site-specific physical constraints?');
+ if(/conditional use|special use/i.test(t))q+=ask('cup','Is the proposed use likely to need conditional-use review?');
+ if(/subdivision|short plat|long plat|divide lot|boundary line|lot line/i.test(t))q+=ask('landdivision','Will you divide land, adjust a boundary, or create/change lots?');
  if(/electric|panel|charger|generator|wiring/i.test(t))q+=ask('electrical','Will electrical wiring, a panel, EV charger, generator, or service change?');
  q+=ask('started','Has any of the work already started or been completed?');
  document.getElementById('questions').innerHTML=q;
