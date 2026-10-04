@@ -159,13 +159,15 @@ async function preview(){
  if(bi){
    deps.push(row('City Permitting Division','Starting point for intake and routing.'));
    pol.push(linkrow('permitting','Bainbridge permitting','Official permit guidance.'));
+   pol.push(deepRule('BIMC 18.09.005 / 18.09.020','Permitted, conditional and unlisted uses','The city first classifies whether the proposed activity is permitted, conditional, accessory, temporary, prohibited, or potentially unlisted.','The zoning district, exact activity, visitor or employee intensity, and whether the use is specifically listed.','ecode'));
    if(land){deps.push(row('Planning Division','Land use, zoning and environmental review.'));why.push(row('Planning review','Your answers indicate the project may affect use, visitors, zoning, or environmental constraints.'));pol.push(linkrow('planning','Planning Division','Official planning source.'))}
+   if(/farm|agricultur|orchard|livestock|crop|u[- ]?pick/i.test(t))pol.push(deepRule('BIMC 18.09.020 / 18.09.030(A)','Agricultural uses','Crop agriculture is permitted in many residential zones, while animal agriculture varies by zone and agriculture remains subject to other site rules.','The zoning district, crop vs. animal activity, animal density, shoreline or critical-area location, and whether structures or activities are expanding.','ecode'));
    if(physical){deps.push(row('Building Division','Construction permits and inspections.'));why.push(row('Building review','You indicated physical construction or alteration.'));pol.push(linkrow('building','Building Division','Official building source.'))}
    if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage / building clearance.'));why.push(row('Health review','You indicated septic may serve the property.'));pol.push(linkrow('kpbc','Kitsap building clearance','Official health-district source.'))}
    if(food){deps.push(row('Kitsap Public Health — Food Safety','Food establishment review.'));pol.push(linkrow('kpfood','Kitsap food safety','Official health-district source.'))}
    if(electrical){deps.push(row('Washington State L&I','Electrical permits and inspections.'));pol.push(linkrow('lni','WA electrical permits','Official state source.'))}
-   if(/home occupation/i.test(t))pol.push(linkrow('home','Home occupation code','Relevant local code section.'));
-   if(critical)pol.push(linkrow('critical','Critical Areas code','Relevant local code section.'));
+   if(/home occupation/i.test(t))pol.push(deepRule('BIMC 18.09.030(13–14)','Minor / major home occupations','The code distinguishes home occupations by residential character, employees, traffic, parking, on-site sales and impacts.','Nonresident employees, daily trips, parking demand, structural changes, on-site sales, or impacts greater than a normal residence.','home'));
+   if(critical)pol.push(deepRule('BIMC Chapter 16.20','Critical Areas','Wetlands, streams, steep slopes, habitat areas and buffers can add setbacks, reports, mitigation or separate review.','Mapped critical areas, field verification, disturbance limits, existing agriculture, and whether expansion is proposed.','critical'));
  }else{
    deps.push(row('Local Planning / Zoning','Confirm allowed use, setbacks and environmental constraints.'));
    if(physical)deps.push(row('Local Building Department','Confirm construction permits and inspections.'));
