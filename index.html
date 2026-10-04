@@ -116,6 +116,15 @@ function ask(k,t){return '<div class="item"><div class="title">'+t+'</div><label
 function v(k){const e=document.querySelector('input[name="'+k+'"]:checked');return e?e.value:'Not sure'}
 function y(k){return v(k)==='Yes'}
 function row(t,d){return '<div class="item"><div class="title">'+t+'</div><div class="muted">'+d+'</div></div>'}
+function deepRule(section,title,why,change,key){
+ const st=freshness[key]||{};
+ const checked=st.checked_at?' · Last checked '+new Date(st.checked_at).toLocaleDateString():'';
+ const badge=st.changed?'<span class="tag warn">SOURCE CHANGED</span>':'<span class="tag">DEEP LOCAL PACK</span>';
+ return '<div class="item">'+badge+'<div class="title" style="margin-top:6px">'+section+' · '+title+'</div>'+
+ '<div class="muted"><b>Why it matters:</b> '+why+'</div>'+
+ '<div class="muted"><b>What could change this:</b> '+change+'</div>'+
+ '<div class="muted"><a target="_blank" rel="noopener" href="'+S[key].u+'">Official source</a>'+checked+'</div></div>';
+}
 function linkrow(k,t,d){const s=S[k],st=freshness[k]||{};let badge=st.changed?'<span class="tag warn">SOURCE CHANGED</span>':'<span class="tag">OFFICIAL SOURCE</span>';const ck=st.checked_at?' · checked '+new Date(st.checked_at).toLocaleDateString():'';return '<div class="item"><div class="title">'+badge+t+'</div><div class="muted">'+d+ck+'</div><div class="muted"><a target="_blank" rel="noopener" href="'+s.u+'">Open source</a></div></div>'}
 function step(n,t){return '<div class="item step"><span class="n">'+n+'</span><div>'+t+'</div></div>'}
 
