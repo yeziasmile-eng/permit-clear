@@ -7,7 +7,7 @@
 <style>
 :root{--bg:#f6f8f7;--card:#fff;--ink:#173128;--muted:#66736e;--line:#dce4e0;--green:#1f6249;--soft:#edf5f1;--warn:#fff6df;--blue:#eef4fb}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-header{background:#173d31;color:white;padding:34px 18px}.wrap{max-width:980px;margin:auto}h1{font-size:34px;margin:0 0 6px}.lead{max-width:760px;font-size:17px;opacity:.94}
+header{background:#173d31;color:white;padding:42px 18px;text-align:center}.wrap{max-width:820px;margin:auto}h1{font-size:34px;margin:0 0 6px}.lead{max-width:680px;font-size:17px;opacity:.94;margin:0 auto}
 main{padding:20px 16px 56px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
 .notice{background:var(--warn);border:1px solid #ead8ad;border-radius:10px;padding:10px 12px;font-size:13px}
 label{display:block;font-weight:750;font-size:13px;margin:13px 0 6px}input,textarea{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:120px}
@@ -19,7 +19,7 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 .hero{background:var(--soft);border-color:#cfe0d8}.big{font-size:22px;font-weight:850}.smallcaps{text-transform:uppercase;letter-spacing:.05em;font-size:11px;font-weight:800;color:var(--muted)}
 .step{display:flex;gap:8px;align-items:flex-start}.n{min-width:24px;height:24px;border-radius:50%;background:var(--blue);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
 .example{border-left:4px solid var(--green);padding-left:14px}.trust{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.trust>div{background:#fafcfb;border:1px solid var(--line);border-radius:10px;padding:12px}@media(max-width:760px){.trust{grid-template-columns:1fr}}
-a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
+.property-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.property-box{background:#fafcfb;border:1px solid var(--line);border-radius:10px;padding:12px}.property-value{font-size:20px;font-weight:850;margin-top:4px}@media(max-width:650px){.property-grid{grid-template-columns:1fr}}a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
 </style></head>
 <body>
 <header><div class="wrap">
@@ -34,8 +34,18 @@ a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:v
 <h2>Ask PermitClear</h2>
 <div class="hint">Ask a specific permit or policy question in plain language. PermitClear will show likely policy references first, then ask only the questions needed to narrow the answer.</div>
 
-<label>Property address or ZIP code <span class="muted">(recommended)</span></label>
-<input id="location" placeholder="Example: 98110 or 123 Main St, Seattle, WA 98101">
+<label>Property address <span class="muted">(recommended)</span></label>
+<input id="location" placeholder="Example: 123 Main St, Bainbridge Island, WA 98110" oninput="schedulePropertyLookup()" onblur="lookupProperty()">
+<div class="hint">Enter a full street address to check jurisdiction and zoning where a local GIS connector is available.</div>
+
+<div id="propertySnapshot" class="card hero" style="display:none;margin-top:14px">
+  <div class="smallcaps">Property snapshot</div>
+  <div class="property-grid">
+    <div class="property-box"><div class="muted">Likely jurisdiction</div><div class="property-value" id="propJurisdiction">—</div></div>
+    <div class="property-box"><div class="muted">Zoning</div><div class="property-value" id="propZoning">—</div></div>
+  </div>
+  <div class="hint" id="propNote" style="margin-top:9px"></div>
+</div>
 
 <label>Your question</label>
 <textarea id="caseText" placeholder="Example: Can I host occasional farm visitors on my property?"></textarea>
@@ -111,12 +121,118 @@ const S={
  farmplan:{u:'https://www.bainbridgewa.gov/1501/Agricultural-Technical-Assistance-Progra',n:'Bainbridge Agricultural Technical Assistance Program'},
  kpbc:{u:'https://www.kitsappublichealth.org/dwos/bc',n:'Kitsap Public Health Building Clearance'},
  kpfood:{u:'https://www.kitsappublichealth.org/fle/newestablishments',n:'Kitsap Public Health Food Safety'},
- lni:{u:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections',n:'WA L&I Electrical Permits'}
+ lni:{u:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections',n:'WA L&I Electrical Permits'},
+ gis:{u:'https://www.bainbridgewa.gov/196/GIS-mapping-map-gallery',n:'Bainbridge GIS Map Gallery'},
+ zoninggis:{u:'https://gis.bainbridgewa.gov/server/rest/services/Landuse/GIS_DBO_lu_OfficialZoning_May2023/FeatureServer/0',n:'Bainbridge Official Zoning GIS'}
 };
 let freshness={};
 fetch('source-status.json?x='+Date.now()).then(r=>r.ok?r.json():{}).then(d=>freshness=d.sources||{}).catch(()=>{});
 
-function askExample(q,loc){document.getElementById('caseText').value=q;if(loc)document.getElementById('location').value=loc;askNow()}
+let propertyTimer=null;
+let propertyContext={address:'',jurisdiction:'',zoning:'',matchedAddress:'',lon:null,lat:null};
+
+function zoningLabel(code){
+ const labels={
+  'R-0.4':'Residential — about 1 unit per 2.5 acres',
+  'R-1':'Residential — about 1 unit per acre',
+  'R-2':'Residential — about 2 units per acre',
+  'R-2.9':'Residential — about 2.9 units per acre',
+  'R-3.5':'Residential — about 3.5 units per acre',
+  'R-4.3':'Residential — about 4.3 units per acre',
+  'R-5':'Residential — about 5 units per acre',
+  'R-6':'Residential — about 6 units per acre',
+  'R-8':'Residential — about 8 units per acre',
+  'R-14':'Residential — about 14 units per acre',
+  'B/I':'Business / Industrial',
+  'CORE':'Core District',
+  'ERICK':'Ericksen Avenue District',
+  'FTD':'Ferry Terminal District',
+  'GATE':'Gateway District',
+  'HS-1':'High School Road 1',
+  'HS-2':'High School Road 2',
+  'MAD':'Madison Avenue District',
+  'NC':'Neighborhood Center',
+  'NC-R-12':'Neighborhood Center / R-12',
+  'WDI':'Water Dependent Industrial',
+  'CURR USE':'Limited to Current Use'
+ };
+ return labels[code]||code;
+}
+
+function schedulePropertyLookup(){
+ clearTimeout(propertyTimer);
+ const a=document.getElementById('location').value.trim();
+ if(a.length<10)return;
+ propertyTimer=setTimeout(lookupProperty,800);
+}
+
+async function geocodeAddress(address){
+ const u='https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?f=json&countryCode=USA&maxLocations=1&outFields=Match_addr,City,Region,Postal&SingleLine='+encodeURIComponent(address);
+ const r=await fetch(u);
+ if(!r.ok)throw new Error('geocoder');
+ const d=await r.json();
+ const c=d.candidates&&d.candidates[0];
+ if(!c)return null;
+ return {matched:c.address||'',x:c.location.x,y:c.location.y,score:c.score||0,attrs:c.attributes||{}};
+}
+
+async function queryBainbridgeZoning(lon,lat){
+ const base='https://gis.bainbridgewa.gov/server/rest/services/Landuse/GIS_DBO_lu_OfficialZoning_May2023/FeatureServer/0/query';
+ const q=new URLSearchParams({
+  f:'json',
+  geometry:lon+','+lat,
+  geometryType:'esriGeometryPoint',
+  inSR:'4326',
+  spatialRel:'esriSpatialRelIntersects',
+  outFields:'layer,descriptio',
+  returnGeometry:'false'
+ });
+ const r=await fetch(base+'?'+q.toString());
+ if(!r.ok)throw new Error('zoning');
+ const d=await r.json();
+ const ft=d.features&&d.features[0];
+ return ft?ft.attributes:null;
+}
+
+async function lookupProperty(){
+ const address=document.getElementById('location').value.trim();
+ if(!address||address.length<10)return;
+ const card=document.getElementById('propertySnapshot');
+ card.style.display='block';
+ document.getElementById('propJurisdiction').textContent='Checking…';
+ document.getElementById('propZoning').textContent='Checking…';
+ document.getElementById('propNote').textContent='Using public GIS / geocoding sources for this beta test.';
+
+ try{
+  const g=await geocodeAddress(address);
+  if(!g){throw new Error('No address match');}
+  const city=(g.attrs.City||'').trim(), region=(g.attrs.Region||'').trim(), postal=(g.attrs.Postal||'').trim();
+  const isBI=/bainbridge/i.test(city)||/bainbridge island/i.test(g.matched)||postal==='98110';
+  propertyContext={address:address,jurisdiction:(city?city+', ':'')+(region||'')+(postal?' '+postal:''),zoning:'',matchedAddress:g.matched,lon:g.x,lat:g.y};
+  document.getElementById('propJurisdiction').textContent=propertyContext.jurisdiction||g.matched||'Needs confirmation';
+
+  if(isBI){
+   const z=await queryBainbridgeZoning(g.x,g.y);
+   if(z&&z.layer){
+    propertyContext.zoning=z.layer;
+    document.getElementById('propZoning').textContent=z.layer;
+    document.getElementById('propNote').innerHTML=zoningLabel(z.layer)+' · <a target="_blank" rel="noopener" href="'+S.gis.u+'">Official City GIS source</a>. Confirm parcel boundaries and current zoning before relying on the result.';
+   }else{
+    document.getElementById('propZoning').textContent='Not matched';
+    document.getElementById('propNote').innerHTML='The address geocoded to Bainbridge Island, but no zoning polygon was returned. <a target="_blank" rel="noopener" href="'+S.gis.u+'">Check the official City GIS map</a>.';
+   }
+  }else{
+   document.getElementById('propZoning').textContent='Connector not loaded';
+   document.getElementById('propNote').textContent='PermitClear currently has automatic zoning lookup connected for Bainbridge Island. Other jurisdictions remain in beta routing mode.';
+  }
+ }catch(e){
+  document.getElementById('propJurisdiction').textContent='Needs confirmation';
+  document.getElementById('propZoning').textContent='Unavailable';
+  document.getElementById('propNote').innerHTML='Automatic property lookup could not complete. You can still ask your permit question, or use the <a target="_blank" rel="noopener" href="'+S.gis.u+'">official GIS map</a> for Bainbridge Island.';
+ }
+}
+
+function askExample(q,loc){document.getElementById('caseText').value=q;if(loc){document.getElementById('location').value=loc;lookupProperty()}askNow()}
 function getZip(s){const m=s.match(/\b(\d{5})(?:-\d{4})?\b/);return m?m[1]:''}
 async function resolveZip(z){if(!z)return null;try{const r=await fetch('https://api.zippopotam.us/us/'+z);if(!r.ok)return null;const d=await r.json(),p=d.places&&d.places[0];return p?{city:p['place name'],state:p['state'],abbr:p['state abbreviation'],zip:z}:null}catch(e){return null}}
 function ask(k,t){return '<div class="item"><div class="title">'+t+'</div><label><input type="radio" name="'+k+'" value="Yes"> Yes</label> <label><input type="radio" name="'+k+'" value="No"> No</label> <label><input type="radio" name="'+k+'" value="Not sure" checked> Not sure</label></div>'}
@@ -309,6 +425,9 @@ async function preview(){
  document.getElementById('jurisdictionName').textContent=j;document.getElementById('jurisdictionNote').textContent=jn;
 
  const deps=[],why=[],pol=[],next=[],paths=[];
+ if(bi&&propertyContext.zoning){
+   why.push(row('Property zoning',propertyContext.zoning+' — '+zoningLabel(propertyContext.zoning)+'. This zoning result is used to focus the policy preview, but parcel boundaries and current official records should still be confirmed.'));
+ }
  if(bi){
    deps.push(row('City Permitting Division','Starting point for intake and routing.'));
    pol.push(linkrow('permitting','Bainbridge permitting','Official permit guidance.'));
