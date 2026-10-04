@@ -143,12 +143,61 @@ function deepRule(section,title,why,change,key){
 function linkrow(k,t,d){const s=S[k],st=freshness[k]||{};let badge=st.changed?'<span class="tag warn">SOURCE CHANGED</span>':'<span class="tag">OFFICIAL SOURCE</span>';const ck=st.checked_at?' · checked '+new Date(st.checked_at).toLocaleDateString():'';return '<div class="item"><div class="title">'+badge+t+'</div><div class="muted">'+d+ck+'</div><div class="muted"><a target="_blank" rel="noopener" href="'+s.u+'">Open source</a></div></div>'}
 function step(n,t){return '<div class="item step"><span class="n">'+n+'</span><div>'+t+'</div></div>'}
 
+function questionIntent(t){
+ const q=t.toLowerCase();
+ if(/do i need|is .* required|need .*permit|需要|是否需要|要不要/.test(q)) return 'need';
+ if(/can i|may i|is it allowed|可以|可否|能不能/.test(q)) return 'allowed';
+ if(/who handles|who issues|which department|谁负责|哪个部门/.test(q)) return 'who';
+ if(/what permit|which permit|what approval|什么permit|什么许可|需要什么/.test(q)) return 'permit';
+ return 'general';
+}
+function genericDirectAnswer(t,bi){
+ const intent=questionIntent(t);
+ const cards=[];
+ const isFarm=/farm|agricultur|orchard|produce|livestock|farm stand|运营农场|农场/i.test(t);
+ const isBuilding=/adu|addition|deck|remodel|building|structure|fence|加建|改建|围栏/i.test(t);
+ const isElectrical=/electric|electrical|panel|charger|generator|wiring|电路|电气/i.test(t);
+ const isGrading=/grade|grading|fill|gravel|paver|paving|drain|drainage|rockery|场地|回填|铺装/i.test(t);
+ const isShore=/shoreline|waterfront|dock|pier|bulkhead|ohwm|岸线|码头/i.test(t);
+ const isBusiness=/business|retail|store|shop|home occupation|开店|经营/i.test(t);
+
+ if(bi){
+   if(intent==='who'){
+     if(isElectrical) cards.push(answerCard('Washington State L&I is likely the first electrical-permit authority to check.','Electrical permitting can be handled by the state rather than the city. Confirm the exact scope and property conditions.','lni'));
+     else if(isGrading) cards.push(answerCard('City Development Engineering / Public Works is likely involved.','Grading, drainage, paving and site work can require separate review from building or land-use approvals.','siteassessment'));
+     else if(isBuilding) cards.push(answerCard('Bainbridge Building Division is likely involved.','Construction work is reviewed separately from land-use classification.','building'));
+     else cards.push(answerCard('Start with Bainbridge Permitting / Planning.','They can route the question to the correct review track once the use and project scope are clear.','permitting'));
+   }
+
+   if(intent==='permit' || intent==='need'){
+     if(isElectrical) cards.push(answerCard('An electrical permit may be required.','The exact requirement depends on the work type, but electrical permits/inspections are commonly handled by Washington State L&I.','lni'));
+     if(isBuilding) cards.push(answerCard('A building permit may be required.','New structures, additions, decks and remodels often trigger building review; zoning and site rules may also apply separately.','building'));
+     if(isGrading) cards.push(answerCard('A grading / site or stormwater review may be required.','The trigger depends on disturbance area, fill, paving, drainage change and site conditions.','siteassessment'));
+     if(isShore) cards.push(answerCard('Shoreline review may be required.','Whether a shoreline permit is needed depends on shoreline jurisdiction, project type, distance from ordinary high water and possible exemptions.','shoreline'));
+     if(isBusiness) cards.push(answerCard('Land-use approval may be required before or alongside a business license.','Whether the activity fits an allowed use, home occupation, conditional use or another category depends on location, intensity and visitor/employee impacts.','planning'));
+   }
+
+   if(intent==='allowed'){
+     if(isBuilding) cards.push(answerCard('Possibly — but zoning/site constraints must be checked before assuming it is allowed.','A project can be structurally buildable but still constrained by setbacks, critical areas, shoreline rules or use standards.','planning'));
+     else if(isBusiness) cards.push(answerCard('Possibly — the answer depends on how the use is classified.','The key facts are zoning district, customer/visitor activity, employees, parking, sales and whether the activity remains accessory to residential or agricultural use.','ecode'));
+     else if(isFarm) cards.push(answerCard('Agricultural activity may be allowed, but the exact standards depend on the type and intensity of farming.','Crop agriculture, animal agriculture, accessory sales, visitors and structures can be treated differently under local rules.','ecode'));
+   }
+ } else {
+   if(intent==='need') cards.push(row('Direct answer','Possibly. Permit requirements depend on the exact city/county jurisdiction and project facts. PermitClear will narrow the likely permit types, then point you to the controlling local source.'));
+   if(intent==='allowed') cards.push(row('Direct answer','Possibly. Zoning and site-specific rules control the answer, so the exact jurisdiction and property facts must be confirmed.'));
+   if(intent==='who') cards.push(row('Direct answer','The responsible agency depends on the jurisdiction and subject. PermitClear will identify the likely planning, building, public works, health, fire, or state authority.'));
+   if(intent==='permit') cards.push(row('Direct answer','PermitClear can narrow the likely permit categories, but the exact local permit type must be confirmed with the responsible jurisdiction.'));
+ }
+ return cards;
+}
+
 function instantRefs(){
  const t=document.getElementById('caseText').value.trim();
  const loc=document.getElementById('location').value.trim();
  const zip=getZip(loc);
  const bi=zip==='98110'||/bainbridge island/i.test(loc);
  const out=[];
+ out.push(...genericDirectAnswer(t,bi));
 
  if(bi){
    if(/farm plan|farm management plan|resource management plan|operate a farm|run a farm|operating a farm|运营农场|农场计划/i.test(t)){
