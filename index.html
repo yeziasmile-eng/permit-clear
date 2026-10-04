@@ -42,7 +42,9 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
   <div class="smallcaps">Property snapshot</div>
   <div class="property-grid">
     <div class="property-box"><div class="muted">Likely jurisdiction</div><div class="property-value" id="propJurisdiction">—</div></div>
-    <div class="property-box"><div class="muted">Zoning</div><div class="property-value" id="propZoning">—</div></div>
+    <div class="property-box"><div class="muted">Zoning</div><div class="property-value" id="propZoning">—</div><div class="hint" id="zoningMeaning"></div></div>
+    <div class="property-box"><div class="muted">Critical Areas</div><div class="property-value" id="propCritical">—</div><div class="hint" id="criticalNote"></div></div>
+    <div class="property-box"><div class="muted">Recorded C&amp;R / CC&amp;Rs</div><div class="property-value" id="propCR">Check required</div><div class="hint" id="crNote"></div></div>
   </div>
   <div class="hint" id="propNote" style="margin-top:9px"></div>
 </div>
@@ -123,7 +125,9 @@ const S={
  kpfood:{u:'https://www.kitsappublichealth.org/fle/newestablishments',n:'Kitsap Public Health Food Safety'},
  lni:{u:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections',n:'WA L&I Electrical Permits'},
  gis:{u:'https://www.bainbridgewa.gov/196/GIS-mapping-map-gallery',n:'Bainbridge GIS Map Gallery'},
- zoninggis:{u:'https://gis.bainbridgewa.gov/server/rest/services/Landuse/GIS_DBO_lu_OfficialZoning_May2023/FeatureServer/0',n:'Bainbridge Official Zoning GIS'}
+ zoninggis:{u:'https://gis.bainbridgewa.gov/server/rest/services/Landuse/GIS_DBO_lu_OfficialZoning_May2023/FeatureServer/0',n:'Bainbridge Official Zoning GIS'},
+ wetlands:{u:'https://gis.bainbridgewa.gov/server/rest/services/CriticalAreas/ca_Wetlands/FeatureServer/0',n:'Bainbridge Known Wetlands GIS'},
+ auditor:{u:'https://kcwaimg.kitsap.gov/recorder/web/splash.jsp',n:'Kitsap County Auditor Recorded Documents'}
 };
 let freshness={};
 fetch('source-status.json?x='+Date.now()).then(r=>r.ok?r.json():{}).then(d=>freshness=d.sources||{}).catch(()=>{});
@@ -176,6 +180,23 @@ async function geocodeAddress(address){
  return {matched:c.address||'',x:c.location.x,y:c.location.y,score:c.score||0,attrs:c.attributes||{}};
 }
 
+async function queryCriticalWetlands(lon,lat){
+ const base=S.wetlands.u+'/query';
+ const q=new URLSearchParams({
+  f:'json',
+  geometry:lon+','+lat,
+  geometryType:'esriGeometryPoint',
+  inSR:'4326',
+  spatialRel:'esriSpatialRelIntersects',
+  outFields:'*',
+  returnGeometry:'false'
+ });
+ const r=await fetch(base+'?'+q.toString());
+ if(!r.ok)throw new Error('critical');
+ const d=await r.json();
+ return !!(d.features&&d.features.length);
+}
+
 async function queryBainbridgeZoning(lon,lat){
  const base='https://gis.bainbridgewa.gov/server/rest/services/Landuse/GIS_DBO_lu_OfficialZoning_May2023/FeatureServer/0/query';
  const q=new URLSearchParams({
@@ -216,18 +237,42 @@ async function lookupProperty(){
    if(z&&z.layer){
     propertyContext.zoning=z.layer;
     document.getElementById('propZoning').textContent=z.layer;
-    document.getElementById('propNote').innerHTML=zoningLabel(z.layer)+' · <a target="_blank" rel="noopener" href="'+S.gis.u+'">Official City GIS source</a>. Confirm parcel boundaries and current zoning before relying on the result.';
+    document.getElementById('zoningMeaning').innerHTML=zoningLabel(z.layer)+'<br><b>What zoning means:</b> it helps determine allowed land uses, residential density, setbacks and other development standards. <a target="_blank" rel="noopener" href="'+S.planning.u+'">Planning / zoning source</a>.';
+    document.getElementById('propNote').innerHTML='<a target="_blank" rel="noopener" href="'+S.gis.u+'">Open official City GIS</a>. Confirm parcel boundaries and current zoning before relying on the result.';
    }else{
     document.getElementById('propZoning').textContent='Not matched';
+    document.getElementById('zoningMeaning').textContent='Zoning controls land-use classification and many development standards.';
     document.getElementById('propNote').innerHTML='The address geocoded to Bainbridge Island, but no zoning polygon was returned. <a target="_blank" rel="noopener" href="'+S.gis.u+'">Check the official City GIS map</a>.';
    }
+
+   try{
+     const wet=await queryCriticalWetlands(g.x,g.y);
+     document.getElementById('propCritical').textContent=wet?'Known wetland layer match':'No wetland polygon at point';
+     document.getElementById('criticalNote').innerHTML=(wet?'A known wetland GIS polygon intersects this point. Critical-area review may apply.':'No known wetland polygon intersects the geocoded point, but this does not rule out streams, buffers, steep slopes, unmapped wetlands or other critical areas.')+' <a target="_blank" rel="noopener" href="'+S.wetlands.u+'">Official wetlands GIS</a> · <a target="_blank" rel="noopener" href="'+S.critical.u+'">Critical Areas code</a>.';
+   }catch(e){
+     document.getElementById('propCritical').textContent='Needs review';
+     document.getElementById('criticalNote').innerHTML='Automatic wetlands check could not complete. <a target="_blank" rel="noopener" href="'+S.critical.u+'">Open Critical Areas code</a>.';
+   }
+
+   document.getElementById('propCR').textContent='Check public records';
+   document.getElementById('crNote').innerHTML='Recorded covenants can restrict a property even when zoning allows an activity. Search Kitsap County Auditor records, ideally using the tax parcel number, and review the title report when available. <a target="_blank" rel="noopener" href="'+S.auditor.u+'">Search recorded documents</a>.';
   }else{
    document.getElementById('propZoning').textContent='Connector not loaded';
-   document.getElementById('propNote').textContent='PermitClear currently has automatic zoning lookup connected for Bainbridge Island. Other jurisdictions remain in beta routing mode.';
+   document.getElementById('zoningMeaning').textContent='Zoning typically controls allowed uses, density, setbacks and development standards.';
+   document.getElementById('propCritical').textContent='Connector not loaded';
+   document.getElementById('criticalNote').textContent='Critical-area GIS lookup is currently connected only for the Bainbridge test pack.';
+   document.getElementById('propCR').textContent='Local records check';
+   document.getElementById('crNote').textContent='Recorded covenants are usually found in county land records or a title report; the local connector is not loaded yet.';
+   document.getElementById('propNote').textContent='PermitClear currently has automatic zoning / critical-area lookup connected for Bainbridge Island. Other jurisdictions remain in beta routing mode.';
   }
  }catch(e){
   document.getElementById('propJurisdiction').textContent='Needs confirmation';
   document.getElementById('propZoning').textContent='Unavailable';
+  document.getElementById('zoningMeaning').textContent='';
+  document.getElementById('propCritical').textContent='Unavailable';
+  document.getElementById('criticalNote').textContent='';
+  document.getElementById('propCR').textContent='Check required';
+  document.getElementById('crNote').textContent='Use county land records or a title report to check recorded covenants.';
   document.getElementById('propNote').innerHTML='Automatic property lookup could not complete. You can still ask your permit question, or use the <a target="_blank" rel="noopener" href="'+S.gis.u+'">official GIS map</a> for Bainbridge Island.';
  }
 }
