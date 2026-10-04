@@ -24,11 +24,11 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 <body>
 <header><div class="wrap">
 <h1>PermitClear</h1>
-<div class="lead">A focused permit and policy research assistant for Bainbridge Island and Kitsap County.</div>
+<div class="lead">A focused farm permit and policy research assistant for Bainbridge Island and Kitsap County.</div>
 </div></header>
 
 <main class="wrap">
-<div class="notice"><b>Private beta testing version.</b> Current test coverage is focused on Bainbridge Island and Kitsap County. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
+<div class="notice"><b>Private beta testing version.</b> Current test coverage is focused on farm-related questions in Bainbridge Island and Kitsap County. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
 
 <section class="card">
 <h2>Ask PermitClear</h2>
@@ -50,15 +50,15 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 </div>
 
 <label>Your question</label>
-<textarea id="caseText" placeholder="Example: Can I host occasional farm visitors on my property?"></textarea>
+<textarea id="caseText" placeholder="Example: Do I need a Farm Plan? Can I host U-pick? Can I sell produce on-site?"></textarea>
 
 <div class="chips">
-<button class="chip" onclick="askExample('Can I add an ADU in my backyard?','Seattle, WA 98101')">Add an ADU</button>
-<button class="chip" onclick="askExample('Do I need a permit to replace a fence?','')">Replace a fence</button>
-<button class="chip" onclick="askExample('Can I open a small business at this property?','')">Open a business</button>
-<button class="chip" onclick="askExample('Do I need an electrical permit for a new panel?','')">Electrical</button>
-<button class="chip" onclick="askExample('Can I grade, add gravel, pavers, or change drainage?','')">Grading / site work</button>
-<button class="chip" onclick="askExample('Can I host occasional visitors or sell produce at a farm?','98110')">Farm / visitors</button>
+<button class="chip" onclick="askExample('Do I need a Farm Plan to operate a farm?','98110')">Farm Plan</button>
+<button class="chip" onclick="askExample('Can I operate a crop farm or orchard on this property?','98110')">Crop / orchard</button>
+<button class="chip" onclick="askExample('Can I keep livestock or poultry on this property?','98110')">Livestock</button>
+<button class="chip" onclick="askExample('Can I sell produce from a farm stand on this property?','98110')">Farm stand</button>
+<button class="chip" onclick="askExample('Can I host occasional farm visitors, workshops, or U-pick?','98110')">Visitors / U-pick</button>
+<button class="chip" onclick="askExample('What permits may apply if I add gravel, pavers, drainage, or grading for farm use?','98110')">Farm site work</button>
 </div>
 
 <button onclick="askNow()">Find relevant policies</button>
@@ -99,11 +99,11 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 
 <details class="card">
 <summary>About the data</summary>
-<div class="muted" style="margin-top:10px">PermitClear is a limited beta testing tool focused on Bainbridge Island and Kitsap County. Results are generated from public City, County, State, municipal-code, GIS, and agency guidance sources. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
+<div class="muted" style="margin-top:10px">PermitClear is a limited beta testing tool focused on farm-related questions in Bainbridge Island and Kitsap County. Results are generated from public City, County, State, municipal-code, GIS, and agency guidance sources. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
 </details>
 </main>
 
-<footer>PermitClear · Bainbridge Island + Kitsap County beta · Limited testing only · Official sources remain controlling.</footer>
+<footer>PermitClear · Farm-focused Bainbridge Island + Kitsap County beta · Limited testing only · Official sources remain controlling.</footer>
 
 <script>
 const S={
@@ -419,7 +419,15 @@ function instantRefs(){
 
 function askNow(){
  const t=document.getElementById('caseText').value.trim();
- if(!t){alert('Please ask a specific permit or policy question.');return}
+ if(!t){alert('Please ask a specific farm-related permit or policy question.');return}
+ const farmRelated=/farm|agricultur|orchard|crop|livestock|poultry|produce|u[- ]?pick|visitor|workshop|farm stand|food|septic|grading|grade|gravel|paver|drainage|wetland|critical area|shoreline|barn|agricultural structure|farm plan|resource management plan|农场|农业|山楂|果园|牲畜|家禽|采摘/i.test(t);
+ if(!farmRelated){
+   document.getElementById('instantPolicies').innerHTML=row('Current beta scope','This test version is focused on farm-related questions in Bainbridge Island and Kitsap County.');
+   document.getElementById('instantCard').style.display='block';
+   document.getElementById('questionsCard').style.display='none';
+   document.getElementById('instantCard').scrollIntoView({behavior:'smooth'});
+   return;
+ }
  instantRefs();
  buildQuestions();
  document.getElementById('instantCard').scrollIntoView({behavior:'smooth'});
@@ -427,39 +435,30 @@ function askNow(){
 
 function buildQuestions(){
  const t=document.getElementById('caseText').value.trim();
- if(!t){alert('Please describe the project first.');return}
- let q=ask('physical','Will you build, add, remove, or structurally alter something?')+
- ask('usechange','Will the activity or occupancy be different from the current approved use?')+
- ask('public','Will customers, visitors, students, guests, or the public come to the property?');
- if(/food|restaurant|kitchen|farm|produce|market|cafe/i.test(t))q+=ask('food','Will food be prepared, cut, packaged, stored for sale, or served?');
- if(/farm plan|farm management plan|resource management plan|operate a farm|run a farm|operating a farm|运营农场|农场计划/i.test(t)){
-   q+=ask('livestock','Will the farm keep livestock or poultry?');
-   q+=ask('cropfarm','Is the farm primarily crop / orchard / plant production?');
- }
- if(/grade|fill|pav|gravel|rockery|driveway|drain|site|slope/i.test(t))q+=ask('grading','Will soil, fill, paving, drainage, rockery, or site grades change?');
- if(/septic|well|bathroom|bedroom|addition|adu|restaurant/i.test(t))q+=ask('septic','Is the property served by septic / onsite sewage?');
- if(/wetland|stream|shoreline|slope|critical|flood|waterfront/i.test(t))q+=ask('critical','Is the work near shoreline, wetland, stream, steep slope, flood area, or another critical area?');
- if(/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t))q+=ask('shoreline','Is the property within shoreline jurisdiction or close to the ordinary high water mark?');
- if(/variance|setback relief|hardship/i.test(t))q+=ask('variance','Are you asking for relief from a zoning or dimensional standard because of site-specific physical constraints?');
- if(/conditional use|special use/i.test(t))q+=ask('cup','Is the proposed use likely to need conditional-use review?');
- if(/subdivision|short plat|long plat|divide lot|boundary line|lot line/i.test(t))q+=ask('landdivision','Will you divide land, adjust a boundary, or create/change lots?');
- if(/electric|panel|charger|generator|wiring/i.test(t))q+=ask('electrical','Will electrical wiring, a panel, EV charger, generator, or service change?');
- q+=ask('started','Has any of the work already started or been completed?');
+ if(!t){alert('Please describe the farm question first.');return}
+ let q='';
+ q+=ask('cropfarm','Is the activity mainly crops, orchard, herbs, or plant production?');
+ q+=ask('livestock','Will there be livestock or poultry?');
+ q+=ask('public','Will customers, visitors, students, workshop participants, or U-pick guests come to the property?');
+ q+=ask('sales','Will products be sold on-site?');
+ if(/food|produce|farm stand|market|sell|sale|kitchen|tea|jam|cut|package/i.test(t))q+=ask('food','Will food be cut, prepared, packaged, stored for sale, or served?');
+ q+=ask('physical','Will you add or alter a barn, shed, deck, kitchen, restroom, parking area, or other structure?');
+ q+=ask('grading','Will you add fill, gravel, pavers, parking, drainage, rockery, or change site grades?');
+ q+=ask('septic','Is the property served by septic / onsite sewage, or will farm use increase wastewater demand?');
+ q+=ask('critical','Is any activity near wetlands, streams, shoreline, steep slopes, flood areas, or other critical areas?');
+ q+=ask('started','Has any of the farm-related work or use already started?');
  document.getElementById('questions').innerHTML=q;
  document.getElementById('questionsCard').style.display='block';
- document.getElementById('questionsCard').scrollIntoView({behavior:'smooth'});
 }
 
 async function preview(){
  const loc=document.getElementById('location').value.trim(),t=document.getElementById('caseText').value.trim(),caseNo=document.getElementById('caseNo').value.trim();
  const zip=getZip(loc),geo=await resolveZip(zip),bi=zip==='98110'||/bainbridge island/i.test(loc);
- const physical=y('physical'),usechange=y('usechange'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),electrical=y('electrical'),started=y('started');
- const livestock=y('livestock'),cropfarm=y('cropfarm');
- const shoreline=y('shoreline')||/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t);
- const variance=y('variance')||/variance|setback relief|hardship/i.test(t);
- const cup=y('cup')||/conditional use|special use/i.test(t);
- const landdivision=y('landdivision')||/subdivision|short plat|long plat|divide lot|boundary line|lot line/i.test(t);
- const land=usechange||publicUse||/zoning|variance|subdivision|farm|retail|home occupation|shoreline|critical/i.test(t);
+ const physical=y('physical'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),started=y('started');
+ const livestock=y('livestock'),cropfarm=y('cropfarm'),sales=y('sales');
+ const shoreline=/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t);
+ const variance=false, cup=false, landdivision=false;
+ const land=true;
  let j='Jurisdiction needs confirmation',jn='Include a 5-digit ZIP code and confirm city limits vs. unincorporated county.';
  if(geo){j=geo.city+', '+geo.abbr+' · '+geo.zip;jn='ZIP-level match; exact permitting authority still needs address-level confirmation.'}
  else if(bi){j='Bainbridge Island, WA · 98110';jn='Deep local policy pack available.'}
@@ -478,14 +477,12 @@ async function preview(){
      pol.push(answerCard('City guidance says a Farm Plan is required for Bainbridge Island farms.','The City directs farms to establish and implement a Farm Plan under BIMC 18.09.030. Kitsap Conservation District can provide Resource Management / Farm Plan assistance. '+(livestock?'Because you indicated livestock/poultry, the animal-agriculture standards and density/management provisions deserve specific review.':cropfarm?'Because you indicated crop production, the crop-agriculture standards and best-management-practice requirements are especially relevant.':'Answer the crop/livestock questions to narrow which standards matter most.'),'farmplan'));
    }
    if(/farm|agricultur|orchard|livestock|crop|u[- ]?pick/i.test(t))pol.push(deepRule('BIMC 18.09.020 / 18.09.030(A)','Agricultural uses','Crop agriculture is permitted in many residential zones, while animal agriculture varies by zone and agriculture remains subject to other site rules.','The zoning district, crop vs. animal activity, animal density, shoreline or critical-area location, and whether structures or activities are expanding.','ecode'));
+   if(sales)pol.push(deepRule('BIMC 18.09 + applicable use standards','Farm stand / on-site sales','On-site sales may be treated differently from the underlying agricultural use and can raise questions about accessory use, traffic, parking, structures and food handling.','What is sold, whether products are grown on-site, sales frequency, customer trips, parking, structures and food preparation.','ecode'));
+   if(publicUse)pol.push(deepRule('BIMC 18.09 + applicable use standards','Farm visitors / U-pick / workshops','Visitor-facing farm activity can affect how the use is classified and whether parking, traffic, health, building or event-related review is triggered.','Frequency, attendance, paid vs. unpaid participation, parking, structures, food service, and whether the activity is incidental to agriculture.','ecode'));
    if(physical){deps.push(row('Building Division','Construction permits and inspections.'));why.push(row('Building review','You indicated physical construction or alteration.'));pol.push(linkrow('building','Building Division','Official building source.'))}
    if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage / building clearance.'));why.push(row('Health review','You indicated septic may serve the property.'));pol.push(linkrow('kpbc','Kitsap building clearance','Official health-district source.'))}
    if(food){deps.push(row('Kitsap Public Health — Food Safety','Food establishment review.'));pol.push(linkrow('kpfood','Kitsap food safety','Official health-district source.'))}
-   if(electrical){deps.push(row('Washington State L&I','Electrical permits and inspections.'));pol.push(linkrow('lni','WA electrical permits','Official state source.'))}
-   if(cup)pol.push(deepRule('BIMC 2.16','Conditional Use review','Conditional uses follow a separate land-use review path and may include conditions to address compatibility and impacts.','The use-table classification, project intensity, neighboring uses, shoreline or critical-area overlays, and whether the permit is treated as minor or major.','procedures'));
-   if(variance)pol.push(deepRule('BIMC 2.16','Variance review','A variance is relief from a zoning standard based on required findings and property-specific constraints.','Which standard needs relief, the physical condition creating the constraint, whether the situation is self-created, and the amount of relief requested.','procedures'));
-   if(landdivision)pol.push(deepRule('BIMC 2.16 / Title 17','Boundary and subdivision review','Boundary adjustments and subdivisions use separate review tracks from ordinary building permits.','Whether new lots are created, how many lots, access, utilities, critical areas, and whether the request is only a boundary adjustment.','procedures'));
-   if(started)pol.push(deepRule('BIMC 2.16 + applicable construction code','Corrective / after-the-fact review','Work already started may require corrective review, but the path depends on the underlying building, land-use, grading, shoreline or critical-area issue.','Exactly what work is complete, what approvals existed, and which regulatory track the work falls under.','procedures'));
+               if(started)pol.push(deepRule('BIMC 2.16 + applicable construction code','Corrective / after-the-fact review','Work already started may require corrective review, but the path depends on the underlying building, land-use, grading, shoreline or critical-area issue.','Exactly what work is complete, what approvals existed, and which regulatory track the work falls under.','procedures'));
    if(/home occupation/i.test(t))pol.push(deepRule('BIMC 18.09.030(13–14)','Minor / major home occupations','The code distinguishes home occupations by residential character, employees, traffic, parking, on-site sales and impacts.','Nonresident employees, daily trips, parking demand, structural changes, on-site sales, or impacts greater than a normal residence.','home'));
    if(critical)pol.push(deepRule('BIMC Chapter 16.20','Critical Areas','Wetlands, streams, steep slopes, habitat areas and buffers can add setbacks, reports, mitigation or separate review.','Mapped critical areas, field verification, disturbance limits, existing agriculture, and whether expansion is proposed.','critical'));
    if(grading){
@@ -538,11 +535,11 @@ async function preview(){
  });
  {
    const primary=[], secondary=[];
-   if(land) primary.push('Planning / zoning review');
-   if(physical) primary.push('Building / construction review');
-   if(grading) primary.push('Grading / site-work review');
+   primary.push('Agricultural land-use / zoning review');
+   if(physical) primary.push('Farm structure / building review');
+   if(grading) primary.push('Farm site-work / stormwater review');
    if(septic) secondary.push('Onsite sewage / health review');
-   if(food) secondary.push('Food-safety review');
+   if(food) secondary.push('Food-safety / farm sales review');
    if(electrical) secondary.push('Electrical review');
    if(critical) secondary.push('Critical-area / environmental review');
    if(shoreline) secondary.push('Shoreline review');
