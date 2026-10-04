@@ -31,31 +31,37 @@ a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:v
 <div class="notice"><b>Private beta testing version.</b> PermitClear is currently intended only for limited product testing, not public promotion or reliance. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
 
 <section class="card">
-<h2>Try a quick example</h2>
-<div class="example">
-<div class="title">Example: Add an ADU in Seattle</div>
-<div class="muted">PermitClear would narrow the question into land-use, building, utility/site and occupancy issues before showing the policy sources most likely to matter.</div>
-<button class="chip" onclick="loadExample()">Use this example</button>
+<h2>Ask PermitClear</h2>
+<div class="hint">Ask a specific permit or policy question in plain language. PermitClear will show likely policy references first, then ask only the questions needed to narrow the answer.</div>
+
+<label>Property address or ZIP code <span class="muted">(recommended)</span></label>
+<input id="location" placeholder="Example: 98110 or 123 Main St, Seattle, WA 98101">
+
+<label>Your question</label>
+<textarea id="caseText" placeholder="Example: Can I host occasional farm visitors on my property?"></textarea>
+
+<div class="chips">
+<button class="chip" onclick="askExample('Can I add an ADU in my backyard?','Seattle, WA 98101')">Add an ADU</button>
+<button class="chip" onclick="askExample('Do I need a permit to replace a fence?','')">Replace a fence</button>
+<button class="chip" onclick="askExample('Can I open a small business at this property?','')">Open a business</button>
+<button class="chip" onclick="askExample('Do I need an electrical permit for a new panel?','')">Electrical</button>
+<button class="chip" onclick="askExample('Can I grade, add gravel, pavers, or change drainage?','')">Grading / site work</button>
+<button class="chip" onclick="askExample('Can I host occasional visitors or sell produce at a farm?','98110')">Farm / visitors</button>
 </div>
+
+<button onclick="askNow()">Find relevant policies</button>
+
+<details style="margin-top:14px">
+<summary>Add case details (optional)</summary>
+<label>Existing case / permit number</label>
+<input id="caseNo" placeholder="Example: PLN52112 or BLD27414">
+</details>
 </section>
 
-<section class="card">
-<h2>1 · Tell us about your project</h2>
-<label>Property address or ZIP code</label>
-<input id="location" placeholder="Example: 98110 or 123 Main St, Seattle, WA 98101">
-<label>Existing case / permit number <span class="muted">(optional)</span></label>
-<input id="caseNo" placeholder="Example: PLN52112 or BLD27414">
-<label>What are you trying to do?</label>
-<div class="chips">
-<button class="chip" onclick="fillProject('Add an ADU or building addition')">Add / ADU</button>
-<button class="chip" onclick="fillProject('Build or replace a fence')">Fence</button>
-<button class="chip" onclick="fillProject('Open a small business or retail use')">Open a business</button>
-<button class="chip" onclick="fillProject('Add or modify electrical wiring or a panel')">Electrical</button>
-<button class="chip" onclick="fillProject('Grade, fill, pave, or change drainage on the site')">Grading / site work</button>
-<button class="chip" onclick="fillProject('Open a farm stand or host farm visitors')">Farm / visitors</button>
-</div>
-<textarea id="caseText" placeholder="Describe the project in plain language..."></textarea>
-<button onclick="buildQuestions()">Narrow my scope</button>
+<section class="card" id="instantCard" style="display:none">
+<h2>Relevant policy references</h2>
+<div class="hint">Early references based on your question. Answer the follow-up questions below to narrow the scope.</div>
+<div id="instantPolicies"></div>
 </section>
 
 <section class="card" id="questionsCard" style="display:none">
@@ -76,13 +82,13 @@ a{color:#315d8a}footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:v
 <div class="card"><h2>Permit review priority</h2>
 <div class="muted" style="margin-bottom:8px">Priority reflects the facts you entered, not legal certainty.</div>
 <div id="paths"></div></div>
-<div class="card"><h2>Source freshness</h2><div id="freshness"></div></div>
+<details class="card"><summary>Source freshness</summary><div id="freshness" style="margin-top:10px"></div></details>
 </section>
 
-<section class="card">
-<h2>About the data</h2>
-<div class="muted">PermitClear is a limited beta testing tool. Results are generated from public government pages, official municipal-code sources, and public agency guidance. Bainbridge Island / Kitsap currently has the deepest local policy coverage. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
-</section>
+<details class="card">
+<summary>About the data</summary>
+<div class="muted" style="margin-top:10px">PermitClear is a limited beta testing tool. Results are generated from public government pages, official municipal-code sources, and public agency guidance. Bainbridge Island / Kitsap currently has the deepest local policy coverage. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
+</details>
 </main>
 
 <footer>PermitClear · Limited beta testing only · Not for public promotion · Official sources remain controlling.</footer>
@@ -109,8 +115,7 @@ const S={
 let freshness={};
 fetch('source-status.json?x='+Date.now()).then(r=>r.ok?r.json():{}).then(d=>freshness=d.sources||{}).catch(()=>{});
 
-function fillProject(x){document.getElementById('caseText').value=x}
-function loadExample(){document.getElementById('location').value='Seattle, WA 98101';document.getElementById('caseText').value='Add an ADU in the backyard of an existing home';window.scrollTo({top:document.getElementById('location').offsetTop-80,behavior:'smooth'})}
+function askExample(q,loc){document.getElementById('caseText').value=q;if(loc)document.getElementById('location').value=loc;askNow()}
 function getZip(s){const m=s.match(/\b(\d{5})(?:-\d{4})?\b/);return m?m[1]:''}
 async function resolveZip(z){if(!z)return null;try{const r=await fetch('https://api.zippopotam.us/us/'+z);if(!r.ok)return null;const d=await r.json(),p=d.places&&d.places[0];return p?{city:p['place name'],state:p['state'],abbr:p['state abbreviation'],zip:z}:null}catch(e){return null}}
 function ask(k,t){return '<div class="item"><div class="title">'+t+'</div><label><input type="radio" name="'+k+'" value="Yes"> Yes</label> <label><input type="radio" name="'+k+'" value="No"> No</label> <label><input type="radio" name="'+k+'" value="Not sure" checked> Not sure</label></div>'}
@@ -128,6 +133,68 @@ function deepRule(section,title,why,change,key){
 }
 function linkrow(k,t,d){const s=S[k],st=freshness[k]||{};let badge=st.changed?'<span class="tag warn">SOURCE CHANGED</span>':'<span class="tag">OFFICIAL SOURCE</span>';const ck=st.checked_at?' · checked '+new Date(st.checked_at).toLocaleDateString():'';return '<div class="item"><div class="title">'+badge+t+'</div><div class="muted">'+d+ck+'</div><div class="muted"><a target="_blank" rel="noopener" href="'+s.u+'">Open source</a></div></div>'}
 function step(n,t){return '<div class="item step"><span class="n">'+n+'</span><div>'+t+'</div></div>'}
+
+function instantRefs(){
+ const t=document.getElementById('caseText').value.trim();
+ const loc=document.getElementById('location').value.trim();
+ const zip=getZip(loc);
+ const bi=zip==='98110'||/bainbridge island/i.test(loc);
+ const out=[];
+
+ if(bi){
+   if(/farm|agricultur|orchard|produce|visitor|u[- ]?pick|farm stand/i.test(t)){
+     out.push(deepRule('BIMC 18.09.020 / 18.09.030(A)','Agricultural uses','Agricultural activity, visitor activity, and accessory sales can fall into different land-use classifications.','The exact activity, frequency, number of visitors, sales, parking, structures, zoning district, and critical-area conditions.','ecode'));
+   }
+   if(/home occupation|home business|business at home|small business/i.test(t)){
+     out.push(deepRule('BIMC 18.09.030(13–14)','Minor / major home occupations','Home-based business rules can change based on traffic, employees, parking, sales and impacts on residential character.','Nonresident employees, customer visits, deliveries, parking, structural changes and on-site sales.','home'));
+   }
+   if(/grade|grading|fill|gravel|paver|paving|drain|drainage|rockery/i.test(t)){
+     out.push(deepRule('BIMC 15.19','Site Assessment Review','Site disturbance can require review before related permits proceed.','Amount of grading, paving, clearing, drainage change and whether an exemption applies.','siteassessment'));
+     out.push(deepRule('BIMC 15.20','Surface Water and Stormwater Management','New or changed hard surface and drainage can trigger stormwater requirements.','Disturbed area, new or replaced hard surface and drainage impacts.','stormwater'));
+   }
+   if(/shoreline|waterfront|dock|pier|bulkhead|ohwm/i.test(t)){
+     out.push(deepRule('BIMC Chapter 16.12','Shoreline Master Program','Shoreline jurisdiction can overlay zoning and alter setbacks, buffers and permit type.','Distance from ordinary high water, shoreline designation, activity type and exemptions.','shoreline'));
+   }
+   if(/wetland|stream|steep slope|critical area|buffer|flood/i.test(t)){
+     out.push(deepRule('BIMC Chapter 16.20','Critical Areas','Critical areas can add setbacks, reports, mitigation and separate review.','Mapped conditions, field verification, disturbance limits and existing vs. expanded activity.','critical'));
+   }
+   if(/variance|setback relief|hardship/i.test(t)){
+     out.push(deepRule('BIMC 2.16','Variance review','A variance is relief from a zoning standard based on required findings and site-specific constraints.','The standard at issue, physical constraints, whether the hardship is self-created and the relief requested.','procedures'));
+   }
+   if(/conditional use|special use|\bcup\b/i.test(t)){
+     out.push(deepRule('BIMC 2.16','Conditional Use review','Conditional uses follow a separate land-use review path and may include compatibility conditions.','The use-table classification, project intensity, surrounding uses and overlays.','procedures'));
+   }
+   if(/subdivision|divide lot|short plat|long plat|boundary line|lot line/i.test(t)){
+     out.push(deepRule('BIMC 2.16 / Title 17','Boundary and subdivision review','Land division and boundary adjustments have separate review tracks from ordinary building permits.','Whether new lots are created, lot count, access, utilities and critical areas.','procedures'));
+   }
+   if(/adu|addition|deck|remodel|building|structure|fence/i.test(t)){
+     out.push(linkrow('building','Building Division','Construction or structural work may need building review in addition to land-use review.'));
+   }
+   if(/electric|electrical|panel|charger|generator|wiring/i.test(t)){
+     out.push(linkrow('lni','WA electrical permits','Electrical permits and inspections may be handled by Washington State L&I.'));
+   }
+   if(/septic|onsite sewage|drainfield|bedroom|adu/i.test(t)){
+     out.push(linkrow('kpbc','Kitsap building clearance','Septic / onsite sewage can affect building clearance and site approval.'));
+   }
+   if(!out.length){
+     out.push(deepRule('BIMC 18.09.005 / 18.09.020','Use classification','The first land-use question is how the proposed activity is classified under the local use tables.','The zoning district, exact activity and project intensity.','ecode'));
+   }
+ } else {
+   out.push(linkrow('municode','Municode Library','One major municipal-code source used for local ordinance research.'));
+   out.push(linkrow('ecode','eCode360','Another major municipal-code source used by many local governments.'));
+   out.push(linkrow('amlegal','American Legal Publishing','Another nationwide municipal-code library.'));
+ }
+ document.getElementById('instantPolicies').innerHTML=out.join('');
+ document.getElementById('instantCard').style.display='block';
+}
+
+function askNow(){
+ const t=document.getElementById('caseText').value.trim();
+ if(!t){alert('Please ask a specific permit or policy question.');return}
+ instantRefs();
+ buildQuestions();
+ document.getElementById('instantCard').scrollIntoView({behavior:'smooth'});
+}
 
 function buildQuestions(){
  const t=document.getElementById('caseText').value.trim();
@@ -228,6 +295,10 @@ async function preview(){
  document.getElementById('why').innerHTML=why.join('');
  document.getElementById('policies').innerHTML=pol.join('');
  document.getElementById('next').innerHTML=next.map((x,i)=>step(i+1,x)).join('');
+ ['departments','why','policies','next'].forEach(id=>{
+   const el=document.getElementById(id);
+   if(el&&el.parentElement)el.parentElement.style.display=el.innerHTML.trim()?'block':'none';
+ });
  {
    const primary=[], secondary=[];
    if(land) primary.push('Planning / zoning review');
