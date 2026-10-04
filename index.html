@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>City Permitting Preview Helper</title>
+<style>
+:root{--bg:#f5f7f6;--card:#fff;--ink:#183128;--muted:#66736e;--line:#dbe3df;--green:#1f6249;--soft:#edf5f1;--warn:#fff6df;--blue:#edf4fb}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#173d31;color:#fff;padding:30px 18px}.wrap{max-width:980px;margin:auto}h1{margin:0 0 8px;font-size:30px}.lead{font-size:16px;opacity:.92;max-width:760px}
+main{padding:20px 16px 56px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+label{display:block;font-weight:700;font-size:13px;margin:12px 0 6px}input,textarea{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:130px;resize:vertical}
+button{background:var(--green);color:#fff;border:0;border-radius:10px;padding:12px 16px;font-weight:750;cursor:pointer;margin-top:12px}.hint,.muted{font-size:13px;color:var(--muted)}.notice{background:var(--warn);border:1px solid #ead8ad;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+h2{font-size:18px;margin:0 0 10px}.item{padding:10px 0;border-top:1px solid #edf0ee}.item:first-child{border-top:0}.title{font-weight:750}.tag{display:inline-block;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:800;margin-right:6px;background:var(--soft);color:var(--green)}
+a{color:#315d8a}.empty{color:var(--muted);font-size:13px}.step{display:flex;gap:8px;align-items:flex-start}.n{min-width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--blue);font-size:12px;font-weight:800}
+.heroresult{background:var(--soft);border:1px solid #cfe0d8}.big{font-size:22px;font-weight:800;margin:3px 0}.smallcaps{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+details{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}summary{cursor:pointer;font-weight:700}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>City Permitting Preview Helper</h1>
+<div class="lead">Enter a location and what you want to do. Get a simple preview of who may be involved, where to look for the rules, and what to do next.</div>
+</div></header>
+
+<main class="wrap">
+<div class="notice">Preview only — not an official permit determination. Nationwide V1 identifies the likely city/state from a U.S. ZIP code and routes you to major municipal-code sources. Detailed local policy packs are added jurisdiction by jurisdiction.</div>
+
+<section class="card">
+<h2>Tell us about your project</h2>
+<label for="location">1. Property address or ZIP code</label>
+<input id="location" placeholder="Example: 98110 or 123 Main St, Seattle, WA 98101">
+<div class="hint">For the most reliable nationwide match, include a 5-digit ZIP code.</div>
+
+<label for="caseNo">2. Case / permit number <span class="muted">(optional)</span></label>
+<input id="caseNo" placeholder="Example: PLN52112 or BLD27414">
+
+<label for="caseText">3. What are you trying to do?</label>
+<textarea id="caseText" placeholder="Example: Add a deck, remodel a commercial space, divide a lot, install a new septic system, open a farm stand..."></textarea>
+
+<button id="previewBtn" onclick="preview()">Preview permits & policies</button>
+</section>
+
+<section id="results" style="display:none">
+<div class="card heroresult">
+<div class="smallcaps">Likely jurisdiction</div>
+<div class="big" id="jurisdictionName">—</div>
+<div class="muted" id="jurisdictionNote"></div>
+</div>
+
+<div class="grid">
+<div class="card"><h2>Who may be involved</h2><div id="departments"></div></div>
+<div class="card"><h2>Why they may be involved</h2><div id="why"></div></div>
+<div class="card"><h2>Where to look for the rules</h2><div id="policies"></div></div>
+<div class="card"><h2>Suggested next steps</h2><div id="next"></div></div>
+</div>
+
+<section class="card">
+<h2>Simple permit preview</h2>
+<div id="paths"></div>
+<details>
+<summary>Show technical details</summary>
+<div id="technical" style="margin-top:10px"></div>
+</details>
+</section>
+</section>
+</main>
+
+<footer>City Permitting Preview Helper · Nationwide V1 · Research aid only. Always confirm current requirements with the local permitting authority.</footer>
+
+<script>
+const S={
+ municode:'https://library.municode.com/',
+ ecode:'https://ecode360.com/',
+ amlegal:'https://codelibrary.amlegal.com/',
+ permitting:'https://www.bainbridgewa.gov/1287/Permitting',
+ planning:'https://www.bainbridgewa.gov/1177/Planning-Division',
+ building:'https://www.bainbridgewa.gov/157/Building-Division',
+ publicrecords:'https://www.bainbridgewa.gov/163/Public-Records',
+ home:'https://ecode360.com/50274970',
+ procedures:'https://ecode360.com/50262610',
+ rue:'https://ecode360.com/50273273',
+ critical:'https://ecode360.com/50273021',
+ kpbc:'https://www.kitsappublichealth.org/dwos/bc',
+ kpfood:'https://www.kitsappublichealth.org/fle/newestablishments',
+ lni:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections'
+};
+
+function row(title,text,link,label){
+ return '<div class="item"><div class="title">'+title+'</div><div class="muted">'+text+'</div>'+(link?'<div class="muted"><a target="_blank" rel="noopener" href="'+link+'">'+(label||'Official source')+'</a></div>':'')+'</div>';
+}
+function step(n,text){return '<div class="item step"><span class="n">'+n+'</span><div>'+text+'</div></div>'}
+function getZip(loc){
+ const m=loc.match(/\b(\d{5})(?:-\d{4})?\b/); return m?m[1]:'';
+}
+async function resolveZip(zip){
+ if(!zip) return null;
+ try{
+   const r=await fetch('https://api.zippopotam.us/us/'+encodeURIComponent(zip));
+   if(!r.ok) return null;
+   const d=await r.json();
+   const p=d.places&&d.places[0];
+   if(!p) return null;
+   return {city:p['place name'],state:p['state'],abbr:p['state abbreviation'],zip:zip};
+ }catch(e){return null}
+}
+
+async function preview(){
+ const loc=document.getElementById('location').value.trim();
+ const caseNo=document.getElementById('caseNo').value.trim();
+ const t=document.getElementById('caseText').value.trim();
+ if(!loc&&!t&&!caseNo){alert('Please enter a location or project description.');return}
+
+ const btn=document.getElementById('previewBtn');
+ btn.disabled=true; btn.textContent='Checking location...';
+ const zip=getZip(loc);
+ let geo=await resolveZip(zip);
+ btn.disabled=false; btn.textContent='Preview permits & policies';
+
+ const bi=(zip==='98110')||/bainbridge island/i.test(loc);
+ if(bi && !geo) geo={city:'Bainbridge Island',state:'Washington',abbr:'WA',zip:'98110'};
+
+ let jName='Jurisdiction needs confirmation';
+ let jNote='Add a 5-digit ZIP code for automatic city/state matching.';
+ if(geo){jName=geo.city+', '+geo.abbr+' · '+geo.zip;jNote='ZIP-level location match. Always confirm city limits vs. unincorporated county before filing.'}
+ else if(loc){jName=loc;jNote='Location entered, but no ZIP-level match was available. Confirm the local city/county authority.'}
+
+ document.getElementById('jurisdictionName').textContent=jName;
+ document.getElementById('jurisdictionNote').textContent=jNote;
+ document.getElementById('results').style.display='block';
+
+ const land=/\b(zoning|setback|variance|subdivision|lot line|boundary line|CUP|conditional use|shoreline|wetland|critical area|farm|farm stand|u[- ]?pick|home occupation|event|retail|change of use)\b/i.test(t);
+ const build=/\b(deck|addition|remodel|alteration|building|structure|roof|tenant improvement|commercial kitchen)\b/i.test(t);
+ const site=/\b(grading|grade|fill|paver|rockery|gravel|stormwater|driveway|right of way|steep slope)\b/i.test(t);
+ const septic=/\b(septic|onsite sewage|drainfield|reserve area|well)\b/i.test(t);
+ const food=/\b(food service|prepare food|package food|cut fruit|restaurant|commercial kitchen|serve food)\b/i.test(t);
+ const electrical=/\b(electrical|wiring|panel|EV charger|generator)\b/i.test(t);
+ const fire=/\b(fire|sprinkler|assembly|occupancy load|large event)\b/i.test(t);
+ const appeal=/\b(appeal|SEPA|remand|hearing examiner)\b/i.test(t);
+ const shoreline=/\b(shoreline|bulkhead|SCUP|SVAR|SSDP|OHWM)\b/i.test(t);
+ const critical=/\b(wetland|stream|steep slope|critical area|buffer|geologic hazard|flood hazard)\b/i.test(t);
+
+ const deps=[],whys=[],policies=[],next=[],paths=[],tech=[];
+
+ if(bi){
+   deps.push(row('City Permitting Division','Best starting point for application intake, completeness, routing and corrections.',S.permitting));
+   whys.push(row('Permitting','Coordinates the application process and routes the project to other reviewers.',S.permitting));
+   policies.push(row('Bainbridge Island permitting','Official local permit process and application guidance.',S.permitting));
+   if(land||!t){deps.push(row('Planning Division','Land use, zoning, setbacks, variances, subdivisions, shoreline and critical areas.',S.planning));whys.push(row('Planning','Checks whether the proposed use and location are allowed.',S.planning));}
+   if(build||!t){deps.push(row('Building Division','Building permits, construction-code compliance and inspections.',S.building));whys.push(row('Building','Reviews the physical construction work.',S.building));}
+   if(site){deps.push(row('Development Engineering / Public Works','Grading, stormwater, access, right-of-way and site engineering.','https://www.bainbridgewa.gov/154/Planning-Community-Development'));whys.push(row('Site / engineering','Site work can require separate review from the building itself.'))}
+   if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage, building clearance, reserve area and site-plan coordination.',S.kpbc));whys.push(row('Health — septic','Onsite sewage can trigger county health review before or alongside city permits.',S.kpbc));policies.push(row('Kitsap Public Health — septic / building clearance','Check drainfield, reserve-area and site-plan requirements.',S.kpbc));}
+   if(food){deps.push(row('Kitsap Public Health — Food Safety','Food establishment plan review and food permitting.',S.kpfood));whys.push(row('Health — food','Prepared, packaged, stored or served food can trigger separate health review.',S.kpfood));}
+   if(electrical){deps.push(row('Washington State Labor & Industries','Electrical permits and inspections.',S.lni));whys.push(row('Electrical','Electrical work can be permitted by the state rather than the city.',S.lni));}
+   if(caseNo){policies.unshift(row('Existing case / permit record','Search the official local records using '+caseNo+'.',S.publicrecords));}
+ }else{
+   deps.push(row('Local Planning / Zoning','Land use, zoning, setbacks, subdivisions, shoreline/floodplain and environmental constraints.'));
+   if(build||!t) deps.push(row('Local Building Department','Construction permits, adopted building codes and inspections.'));
+   if(site) deps.push(row('Public Works / Development Engineering','Grading, stormwater, access and right-of-way.'));
+   if(septic||food) deps.push(row('County / Regional Health Department','Onsite sewage, water and/or food-establishment requirements.'));
+   if(electrical) deps.push(row('State / local electrical authority','Electrical permits and inspections.'));
+   if(fire) deps.push(row('Fire Marshal / Fire Department','Fire-code, access, occupancy and life-safety review.'));
+
+   whys.push(row('Planning / zoning first','Many projects fail early because the proposed use or site condition is not resolved before construction review.'));
+   if(build) whys.push(row('Building review','Construction approval is separate from whether the land use itself is allowed.'));
+   if(site) whys.push(row('Engineering review','Grading, drainage and access can trigger separate permits.'));
+   if(septic||food) whys.push(row('Health review','County or regional health agencies often control septic and food-safety approvals.'));
+ }
+
+ // Nationwide code-source routing
+ policies.push(row('Municode Library','Search municipal codes and ordinances nationwide.',S.municode,'Search Municode'));
+ policies.push(row('eCode360','Search municipal codes; many communities can be located by municipality name or ZIP.',S.ecode,'Search eCode360'));
+ policies.push(row('American Legal Publishing','Search another major U.S. municipal-code library.',S.amlegal,'Search American Legal'));
+
+ if(caseNo&&!bi) next.push('Look up the existing case number in the local city/county permit portal before starting a new application.');
+ if(!t) next.push('Add a short description of what you want to do so the preview can narrow the departments.');
+ else{
+   next.push('Confirm the exact city vs. unincorporated-county jurisdiction for the property.');
+   next.push('Search the municipality name in the three code libraries above and use the official city/county source when available.');
+   if(land) next.push('Resolve land-use classification before assuming which construction permit is needed.');
+   if(build) next.push('Separate land-use approval from the building permit; one project can require both.');
+   if(site) next.push('Quantify grading/fill/site work and prepare a simple site plan.');
+   if(septic) next.push('Coordinate the same project scope and site plan with the health department and the local permitting agency.');
+   if(food) next.push('Clarify whether food is whole/unprocessed or prepared, cut, packaged, stored or served.');
+ }
+
+ if(/home occupation|home business/i.test(t)) paths.push('Home occupation screening');
+ if(/farm|orchard|farm stand|u[- ]?pick|agricultur/i.test(t)) paths.push('Agricultural use / farm activity screening');
+ if(/farm stand|sell|retail/i.test(t)) paths.push('Accessory agricultural retail screening');
+ if(/deck/i.test(t)) paths.push('Deck permit screening');
+ if(site) paths.push('Grading / site-work screening');
+ if(/commercial|tenant improvement|change of use/i.test(t)) paths.push('Commercial occupancy / change-of-use screening');
+ if(/variance|setback relief/i.test(t)) paths.push('Variance review');
+ if(/boundary line|BLA|lot line/i.test(t)) paths.push('Boundary Line Adjustment review');
+ if(/subdivision|short plat|long plat|plat vacation/i.test(t)) paths.push('Subdivision / plat review');
+ if(/conditional use|CUP|special use/i.test(t)) paths.push('Conditional Use / Special Use review');
+ if(shoreline) paths.push('Shoreline review');
+ if(critical) paths.push('Critical Areas review');
+ if(appeal) paths.push('SEPA / Appeal / Hearing Examiner review');
+ if(/after[- ]the[- ]fact|unpermitted|R-AFT/i.test(t)) paths.push('After-the-Fact building review');
+
+ if(geo) tech.push(row('ZIP resolver',geo.city+', '+geo.state+' ('+geo.zip+').'));
+ tech.push(row('Nationwide source strategy','Use local official sources first; Municode, eCode360 and American Legal are discovery layers, not substitutes for the municipality.'));
+ if(bi){
+   tech.push(row('Local policy pack','Bainbridge Island / Kitsap enhanced rules are loaded.'));
+   if(/home occupation|home business/i.test(t)) tech.push(row('Home occupation code','Minor home occupation criteria may apply.',S.home));
+   if(/variance|subdivision|boundary line|BLA|conditional use|CUP|appeal|SEPA/i.test(t)) tech.push(row('Land-use procedures','Check the applicable local review procedure.',S.procedures));
+   if(/reasonable use|RUE/i.test(t)) tech.push(row('Reasonable Use Exception','Critical-area reasonable-use review may apply.',S.rue));
+   if(critical) tech.push(row('Critical areas','Confirm buffers, mitigation and required reports.',S.critical));
+ }
+
+ document.getElementById('departments').innerHTML=deps.join('')||'<div class="empty">No department identified yet.</div>';
+ document.getElementById('why').innerHTML=whys.join('')||'<div class="empty">Add more project details.</div>';
+ document.getElementById('policies').innerHTML=policies.join('');
+ document.getElementById('next').innerHTML=next.map((x,i)=>step(i+1,x)).join('');
+ document.getElementById('paths').innerHTML=paths.length?paths.map(x=>'<div class="item"><span class="tag">PREVIEW</span>'+x+'</div>').join(''):'<div class="empty">No specific permit path detected yet. Add more project details.</div>';
+ document.getElementById('technical').innerHTML=tech.join('');
+ window.scrollTo({top:document.getElementById('results').offsetTop-10,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
