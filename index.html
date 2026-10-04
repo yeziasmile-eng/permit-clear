@@ -10,7 +10,8 @@
 header{background:#173d31;color:white;padding:42px 18px;text-align:center}.wrap{max-width:820px;margin:auto}h1{font-size:34px;margin:0 0 6px}.lead{max-width:680px;font-size:17px;opacity:.94;margin:0 auto}
 main{padding:20px 16px 56px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
 .notice{background:var(--warn);border:1px solid #ead8ad;border-radius:10px;padding:10px 12px;font-size:13px}
-label{display:block;font-weight:750;font-size:13px;margin:13px 0 6px}input,textarea{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:120px}
+label{display:block;font-weight:750;font-size:13px;margin:13px 0 6px}input,textarea,select{width:100%;padding:12px 13px;border:1px solid #bcc9c3;border-radius:10px;font:inherit;background:#fff}textarea{min-height:120px}
+.role-gate{text-align:center;padding:22px}.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.role-btn{margin:0;padding:18px 14px;background:#fff;color:var(--ink);border:1px solid #bfd0c8;text-align:left}.role-btn:hover,.role-btn.active{background:var(--soft);border-color:var(--green)}.role-btn b{display:block;font-size:16px;margin-bottom:5px}.role-btn span{display:block;font-size:12px;color:var(--muted);font-weight:500}.modebar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding:9px 11px;background:var(--soft);border-radius:10px}.modebar button{margin:0;padding:6px 9px;background:transparent;color:var(--green);border:1px solid #c9d7d0;font-size:12px}.staff-only{display:none}.staff-only.show{display:block}@media(max-width:650px){.role-grid{grid-template-columns:1fr}}
 button{border:0;border-radius:10px;background:var(--green);color:white;padding:12px 16px;font-weight:800;cursor:pointer;margin-top:12px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.chip{margin:0;background:#fff;color:var(--green);border:1px solid #c9d7d0;padding:8px 11px;border-radius:999px;font-size:13px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
@@ -29,8 +30,27 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 <main class="wrap">
 <div class="notice"><b>Beta test.</b> Bainbridge Island + Kitsap farm questions only. Confirm final requirements with the official agency.</div>
 
-<section class="card">
-<h2>Ask a farm permit question</h2>
+<section class="card role-gate" id="roleGate">
+<div class="smallcaps">Start here</div>
+<h2 style="font-size:22px;margin-top:5px">Who is using PermitClear?</h2>
+<div class="hint">Choose the user type first so the questions, terminology, and policy matches fit the task.</div>
+<div class="role-grid">
+<button class="role-btn" id="publicRoleBtn" onclick="chooseRole('public')"><b>Property owner / farmer / resident</b><span>Plain-language guidance: what may apply, who to contact, and what to check next.</span></button>
+<button class="role-btn" id="staffRoleBtn" onclick="chooseRole('staff')"><b>City / County / Agency staff</b><span>Review-oriented view: case facts, code references, review path, and unresolved questions.</span></button>
+</div>
+</section>
+
+<section class="card" id="queryCard" style="display:none">
+<div class="modebar"><div><span class="smallcaps">Current view</span><div class="title" id="modeName">—</div></div><button onclick="resetRole()">Change user type</button></div>
+<h2 id="queryTitle">Ask a farm permit question</h2>
+<div class="hint" id="queryIntro"></div>
+
+<div class="staff-only" id="staffFields">
+<label>Department / review desk <span class="muted">(optional)</span></label>
+<input id="staffDepartment" placeholder="Example: Planning, Building, Public Works, Health">
+<label>Known case facts <span class="muted">(optional)</span></label>
+<textarea id="staffFacts" style="min-height:86px" placeholder="Example: Existing farm use; occasional workshops; gravel area added in 2025; septic on site."></textarea>
+</div>
 
 <label>Property address <span class="muted">(recommended)</span></label>
 <input id="location" placeholder="Example: 123 Main St, Bainbridge Island, WA 98110" oninput="schedulePropertyLookup()" onblur="lookupProperty()">
@@ -47,7 +67,7 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
   <div class="hint" id="propNote" style="margin-top:9px"></div>
 </div>
 
-<label>Your question</label>
+<label id="questionLabel">Your question</label>
 <textarea id="caseText" placeholder="Example: Do I need a Farm Plan? Can I host U-pick? Can I sell produce on-site?"></textarea>
 
 <div class="chips">
@@ -61,16 +81,16 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 
 <button onclick="askNow()">Find relevant policies</button>
 
-<details style="margin-top:14px">
-<summary>Add case details (optional)</summary>
+<details style="margin-top:14px" id="caseDetails">
+<summary id="caseDetailsSummary">Add case details (optional)</summary>
 <label>Existing case / permit number</label>
 <input id="caseNo" placeholder="Example: PLN52112 or BLD27414">
 </details>
 </section>
 
 <section class="card" id="instantCard" style="display:none">
-<h2>Relevant policy references</h2>
-<div class="hint">Early references based on your question. Answer the follow-up questions below to narrow the scope.</div>
+<h2 id="instantTitle">Relevant policy references</h2>
+<div class="hint" id="instantHint">Early references based on your question. Answer the follow-up questions below to narrow the scope.</div>
 <div id="instantPolicies"></div>
 </section>
 
@@ -84,12 +104,12 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 <section id="results" style="display:none">
 <div class="card hero"><div class="smallcaps">Likely jurisdiction</div><div class="big" id="jurisdictionName">—</div><div class="muted" id="jurisdictionNote"></div></div>
 <div class="grid">
-<div class="card"><h2>Who may be involved</h2><div id="departments"></div></div>
-<div class="card"><h2>Why they may be involved</h2><div id="why"></div></div>
-<div class="card"><h2>Most relevant policy sources</h2><div id="policies"></div></div>
-<div class="card"><h2>Suggested next steps</h2><div id="next"></div></div>
+<div class="card"><h2 id="departmentsTitle">Who may be involved</h2><div id="departments"></div></div>
+<div class="card"><h2 id="whyTitle">Why they may be involved</h2><div id="why"></div></div>
+<div class="card"><h2 id="policiesTitle">Most relevant policy sources</h2><div id="policies"></div></div>
+<div class="card"><h2 id="nextTitle">Suggested next steps</h2><div id="next"></div></div>
 </div>
-<div class="card"><h2>Permit review priority</h2>
+<div class="card"><h2 id="priorityTitle">Permit review priority</h2>
 <div class="muted" style="margin-bottom:8px">Priority reflects the facts you entered, not legal certainty.</div>
 <div id="paths"></div></div>
 <details class="card"><summary>Source freshness</summary><div id="freshness" style="margin-top:10px"></div></details>
@@ -132,6 +152,45 @@ fetch('source-status.json?x='+Date.now()).then(r=>r.ok?r.json():{}).then(d=>fres
 
 let propertyTimer=null;
 let propertyContext={address:'',jurisdiction:'',zoning:'',matchedAddress:'',lon:null,lat:null};
+let userRole='';
+
+function chooseRole(role){
+ userRole=role;
+ document.getElementById('queryCard').style.display='block';
+ document.getElementById('publicRoleBtn').classList.toggle('active',role==='public');
+ document.getElementById('staffRoleBtn').classList.toggle('active',role==='staff');
+ const staff=role==='staff';
+ document.getElementById('modeName').textContent=staff?'Staff review view':'Public / property view';
+ document.getElementById('queryTitle').textContent=staff?'Review a farm-related case or policy question':'Ask a farm permit question';
+ document.getElementById('queryIntro').textContent=staff?'Enter the property and review question. Add known case facts so the policy search can distinguish land use, construction, site work, health, and environmental review.':'Start with the property and your question. PermitClear will translate it into likely policy areas and next steps.';
+ document.getElementById('questionLabel').textContent=staff?'Review question':'Your question';
+ document.getElementById('caseText').placeholder=staff?'Example: Does this existing farm use require a Farm Plan, and which review path applies to the added gravel area?':'Example: Do I need a Farm Plan? Can I host U-pick? Can I sell produce on-site?';
+ document.getElementById('staffFields').classList.toggle('show',staff);
+ document.getElementById('caseDetails').open=staff;
+ document.getElementById('caseDetailsSummary').textContent=staff?'Case / permit record':'Add case details (optional)';
+ document.getElementById('instantTitle').textContent=staff?'Matched code and policy references':'Relevant policy references';
+ document.getElementById('instantHint').textContent=staff?'Initial source matches from the review question and known facts. Follow-up facts narrow the review path.':'Early references based on your question. Answer the follow-up questions below to narrow the scope.';
+ document.getElementById('departmentsTitle').textContent=staff?'Likely reviewing units':'Who may be involved';
+ document.getElementById('whyTitle').textContent=staff?'Review rationale':'Why they may be involved';
+ document.getElementById('policiesTitle').textContent=staff?'Code / policy references':'Most relevant policy sources';
+ document.getElementById('nextTitle').textContent=staff?'Review sequence / unresolved facts':'Suggested next steps';
+ document.getElementById('priorityTitle').textContent=staff?'Review path priority':'Permit review priority';
+ document.getElementById('queryCard').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function resetRole(){
+ userRole='';
+ document.getElementById('queryCard').style.display='none';
+ document.getElementById('publicRoleBtn').classList.remove('active');
+ document.getElementById('staffRoleBtn').classList.remove('active');
+ document.getElementById('roleGate').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function analysisText(){
+ const q=document.getElementById('caseText').value.trim();
+ const facts=document.getElementById('staffFacts')?document.getElementById('staffFacts').value.trim():'';
+ const dept=document.getElementById('staffDepartment')?document.getElementById('staffDepartment').value.trim():'';
+ const caseNo=document.getElementById('caseNo')?document.getElementById('caseNo').value.trim():'';
+ return userRole==='staff'?[q,facts,dept,caseNo].filter(Boolean).join(' '):q;
+}
 
 function zoningLabel(code){
  const labels={
@@ -349,7 +408,7 @@ function genericDirectAnswer(t,bi){
 }
 
 function instantRefs(){
- const t=document.getElementById('caseText').value.trim();
+ const t=analysisText();
  const loc=document.getElementById('location').value.trim();
  const zip=getZip(loc);
  const bi=zip==='98110'||/bainbridge island/i.test(loc);
@@ -416,8 +475,10 @@ function instantRefs(){
 }
 
 function askNow(){
- const t=document.getElementById('caseText').value.trim();
- if(!t){alert('Please ask a specific farm-related permit or policy question.');return}
+ if(!userRole){alert('Please choose the user type first.');return}
+ const question=document.getElementById('caseText').value.trim();
+ const t=analysisText();
+ if(!question){alert(userRole==='staff'?'Please enter the review question.':'Please ask a specific farm-related permit or policy question.');return}
  const farmRelated=/farm|agricultur|orchard|crop|livestock|poultry|produce|u[- ]?pick|visitor|workshop|farm stand|food|septic|grading|grade|gravel|paver|drainage|wetland|critical area|shoreline|barn|agricultural structure|farm plan|resource management plan|农场|农业|山楂|果园|牲畜|家禽|采摘/i.test(t);
  if(!farmRelated){
    document.getElementById('instantPolicies').innerHTML=row('Current beta scope','This test version is focused on farm-related questions in Bainbridge Island and Kitsap County.');
@@ -432,7 +493,7 @@ function askNow(){
 }
 
 function buildQuestions(){
- const t=document.getElementById('caseText').value.trim();
+ const t=analysisText();
  if(!t){alert('Please describe the farm question first.');return}
  let q='';
  q+=ask('cropfarm','Is the activity mainly crops, orchard, herbs, or plant production?');
@@ -450,12 +511,13 @@ function buildQuestions(){
 }
 
 async function preview(){
- const loc=document.getElementById('location').value.trim(),t=document.getElementById('caseText').value.trim(),caseNo=document.getElementById('caseNo').value.trim();
+ const loc=document.getElementById('location').value.trim(),t=analysisText(),caseNo=document.getElementById('caseNo').value.trim();
  const zip=getZip(loc),geo=await resolveZip(zip),bi=zip==='98110'||/bainbridge island/i.test(loc);
  const physical=y('physical'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),started=y('started');
  const livestock=y('livestock'),cropfarm=y('cropfarm'),sales=y('sales');
  const shoreline=/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t);
- const variance=false, cup=false, landdivision=false;
+ const electrical=/electric|electrical|panel|charger|generator|wiring/i.test(t);
+ const variance=/variance|setback relief|hardship/i.test(t), cup=/conditional use|special use|\bcup\b/i.test(t), landdivision=/subdivision|divide lot|short plat|long plat|boundary line|lot line/i.test(t);
  const land=true;
  let j='Jurisdiction needs confirmation',jn='Include a 5-digit ZIP code and confirm city limits vs. unincorporated county.';
  if(geo){j=geo.city+', '+geo.abbr+' · '+geo.zip;jn='ZIP-level match; exact permitting authority still needs address-level confirmation.'}
@@ -463,6 +525,10 @@ async function preview(){
  document.getElementById('jurisdictionName').textContent=j;document.getElementById('jurisdictionNote').textContent=jn;
 
  const deps=[],why=[],pol=[],next=[],paths=[];
+ if(userRole==='staff'){
+   const dept=(document.getElementById('staffDepartment')||{}).value||'';
+   if(dept.trim())why.push(row('Review desk context',dept.trim()+' — matches below are based on the project facts and controlling public sources, not the department name alone.'));
+ }
  if(bi&&propertyContext.zoning){
    why.push(row('Property zoning',propertyContext.zoning+' — '+zoningLabel(propertyContext.zoning)+'. This zoning result is used to focus the policy preview, but parcel boundaries and current official records should still be confirmed.'));
  }
@@ -500,6 +566,7 @@ async function preview(){
      pol.push(linkrow('lni','WA electrical permits','State-level source shown only because the question involves electrical work.'));
    }
  }
+ if(userRole==='staff')next.push('Confirm the record facts, existing approvals, and exact scope under review before assigning a permit path.');
  next.push('Confirm the exact permitting jurisdiction for the property.');
  if(caseNo)next.push('Open the existing permit/case record first so the new question matches facts already on file.');
  if(land)next.push('Resolve land-use classification before assuming a construction permit type.');
