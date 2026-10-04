@@ -1,0 +1,87 @@
+name: Daily source monitor
+
+on:
+  schedule:
+    - cron: '20 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Check official sources
+        run: |
+          python - <<'PY'
+          import json, hashlib, urllib.request, datetime, os
+
+          sources = {
+            "municode":"https://library.municode.com/",
+            "ecode":"https://ecode360.com/",
+            "amlegal":"https://codelibrary.amlegal.com/",
+            "permitting":"https://www.bainbridgewa.gov/1287/Permitting",
+            "planning":"https://www.bainbridgewa.gov/1177/Planning-Division",
+            "building":"https://www.bainbridgewa.gov/157/Building-Division",
+            "publicrecords":"https://www.bainbridgewa.gov/163/Public-Records",
+            "home":"https://ecode360.com/50274970",
+            "procedures":"https://ecode360.com/50262610",
+            "critical":"https://ecode360.com/50273021",
+            "kpbc":"https://www.kitsappublichealth.org/dwos/bc",
+            "kpfood":"https://www.kitsappublichealth.org/fle/newestablishments",
+            "lni":"https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections"
+          }
+
+          old={}
+          if os.path.exists("source-status.json"):
+            try:
+              old=json.load(open("source-status.json")).get("sources",{})
+            except Exception:
+              old={}
+
+          now=datetime.datetime.now(datetime.timezone.utc).isoformat()
+          out={"checked_at":now,"sources":{}}
+
+          for key,url in sources.items():
+            ok=False; status=None; digest=None; err=None
+            try:
+              req=urllib.request.Request(url, headers={"User-Agent":"PermitClear-source-monitor/1.0"})
+              with urllib.request.urlopen(req, timeout=20) as r:
+                status=getattr(r,"status",200)
+                body=r.read(2_000_000)
+                ok=200 <= status < 400
+                digest=hashlib.sha256(body).hexdigest()
+            except Exception as e:
+              err=str(e)[:300]
+
+            prev=old.get(key,{})
+            changed=bool(prev.get("hash") and digest and prev.get("hash") != digest)
+            out["sources"][key]={
+              "url":url,
+              "ok":ok,
+              "status":status,
+              "hash":digest,
+              "changed":changed,
+              "checked_at":now,
+              "error":err
+            }
+
+          with open("source-status.json","w") as f:
+            json.dump(out,f,indent=2)
+          PY
+      - name: Commit status if changed
+        run: |
+          if git diff --quiet -- source-status.json; then
+            echo "No source status changes"
+          else
+            git config user.name "permitclear-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add source-status.json
+            git commit -m "Update source freshness status"
+            git push
+          fi
