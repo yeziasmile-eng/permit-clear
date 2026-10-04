@@ -108,6 +108,7 @@ const S={
  shoreline:{u:'https://ecode360.com/50271386',n:'BIMC Shoreline Master Program'},
  siteassessment:{u:'https://ecode360.com/50268867',n:'BIMC Site Assessment Review'},
  stormwater:{u:'https://ecode360.com/50269043',n:'BIMC Surface Water and Stormwater Management'},
+ farmplan:{u:'https://www.bainbridgewa.gov/1501/Agricultural-Technical-Assistance-Progra',n:'Bainbridge Agricultural Technical Assistance Program'},
  kpbc:{u:'https://www.kitsappublichealth.org/dwos/bc',n:'Kitsap Public Health Building Clearance'},
  kpfood:{u:'https://www.kitsappublichealth.org/fle/newestablishments',n:'Kitsap Public Health Food Safety'},
  lni:{u:'https://lni.wa.gov/licensing-permits/electrical/electrical-permits-fees-and-inspections',n:'WA L&I Electrical Permits'}
@@ -122,6 +123,14 @@ function ask(k,t){return '<div class="item"><div class="title">'+t+'</div><label
 function v(k){const e=document.querySelector('input[name="'+k+'"]:checked');return e?e.value:'Not sure'}
 function y(k){return v(k)==='Yes'}
 function row(t,d){return '<div class="item"><div class="title">'+t+'</div><div class="muted">'+d+'</div></div>'}
+function answerCard(answer,detail,key){
+ const st=freshness[key]||{};
+ const checked=st.checked_at?' · Last checked '+new Date(st.checked_at).toLocaleDateString():'';
+ return '<div class="item" style="background:#edf5f1;border:1px solid #cfe0d8;border-radius:10px;padding:14px;margin-bottom:10px">'+
+ '<span class="tag">DIRECT ANSWER</span><div class="title" style="font-size:18px;margin:7px 0">'+answer+'</div>'+
+ '<div class="muted">'+detail+'</div>'+
+ '<div class="muted" style="margin-top:6px"><a target="_blank" rel="noopener" href="'+S[key].u+'">Official source</a>'+checked+'</div></div>';
+}
 function deepRule(section,title,why,change,key){
  const st=freshness[key]||{};
  const checked=st.checked_at?' · Last checked '+new Date(st.checked_at).toLocaleDateString():'';
@@ -142,6 +151,20 @@ function instantRefs(){
  const out=[];
 
  if(bi){
+   if(/farm plan|farm management plan|resource management plan|operate a farm|run a farm|operating a farm|运营农场|农场计划/i.test(t)){
+     out.push(answerCard(
+       'Yes — Bainbridge Island currently says farms are required to establish and implement a Farm Plan.',
+       'The City’s Agricultural Technical Assistance Program states that farms on Bainbridge Island are required to establish and implement farm plans under BIMC 18.09.030. The exact plan requirements can depend on whether the operation involves crops, livestock, animal density, critical areas, or other site conditions. Kitsap Conservation District provides Farm Plan / Resource Management Plan assistance.',
+       'farmplan'
+     ));
+     out.push(deepRule(
+       'BIMC 18.09.030',
+       'Agricultural use standards and Farm Management Plans',
+       'This section contains the use-specific standards for agriculture. For animal agriculture, a Farm Management Plan is specifically used when seeking variations from animal-density or management standards.',
+       'Whether the farm is crop-only or includes livestock/poultry, animal density, site management practices, zoning, and critical-area conditions.',
+       'ecode'
+     ));
+   }
    if(/farm|agricultur|orchard|produce|visitor|u[- ]?pick|farm stand/i.test(t)){
      out.push(deepRule('BIMC 18.09.020 / 18.09.030(A)','Agricultural uses','Agricultural activity, visitor activity, and accessory sales can fall into different land-use classifications.','The exact activity, frequency, number of visitors, sales, parking, structures, zoning district, and critical-area conditions.','ecode'));
    }
@@ -203,6 +226,10 @@ function buildQuestions(){
  ask('usechange','Will the activity or occupancy be different from the current approved use?')+
  ask('public','Will customers, visitors, students, guests, or the public come to the property?');
  if(/food|restaurant|kitchen|farm|produce|market|cafe/i.test(t))q+=ask('food','Will food be prepared, cut, packaged, stored for sale, or served?');
+ if(/farm plan|farm management plan|resource management plan|operate a farm|run a farm|operating a farm|运营农场|农场计划/i.test(t)){
+   q+=ask('livestock','Will the farm keep livestock or poultry?');
+   q+=ask('cropfarm','Is the farm primarily crop / orchard / plant production?');
+ }
  if(/grade|fill|pav|gravel|rockery|driveway|drain|site|slope/i.test(t))q+=ask('grading','Will soil, fill, paving, drainage, rockery, or site grades change?');
  if(/septic|well|bathroom|bedroom|addition|adu|restaurant/i.test(t))q+=ask('septic','Is the property served by septic / onsite sewage?');
  if(/wetland|stream|shoreline|slope|critical|flood|waterfront/i.test(t))q+=ask('critical','Is the work near shoreline, wetland, stream, steep slope, flood area, or another critical area?');
@@ -221,6 +248,7 @@ async function preview(){
  const loc=document.getElementById('location').value.trim(),t=document.getElementById('caseText').value.trim(),caseNo=document.getElementById('caseNo').value.trim();
  const zip=getZip(loc),geo=await resolveZip(zip),bi=zip==='98110'||/bainbridge island/i.test(loc);
  const physical=y('physical'),usechange=y('usechange'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),electrical=y('electrical'),started=y('started');
+ const livestock=y('livestock'),cropfarm=y('cropfarm');
  const shoreline=y('shoreline')||/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t);
  const variance=y('variance')||/variance|setback relief|hardship/i.test(t);
  const cup=y('cup')||/conditional use|special use/i.test(t);
@@ -237,6 +265,9 @@ async function preview(){
    pol.push(linkrow('permitting','Bainbridge permitting','Official permit guidance.'));
    pol.push(deepRule('BIMC 18.09.005 / 18.09.020','Permitted, conditional and unlisted uses','The city first classifies whether the proposed activity is permitted, conditional, accessory, temporary, prohibited, or potentially unlisted.','The zoning district, exact activity, visitor or employee intensity, and whether the use is specifically listed.','ecode'));
    if(land){deps.push(row('Planning Division','Land use, zoning and environmental review.'));why.push(row('Planning review','Your answers indicate the project may affect use, visitors, zoning, or environmental constraints.'));pol.push(linkrow('planning','Planning Division','Official planning source.'))}
+   if(/farm plan|farm management plan|resource management plan|operate a farm|run a farm|operating a farm|运营农场|农场计划/i.test(t)){
+     pol.push(answerCard('City guidance says a Farm Plan is required for Bainbridge Island farms.','The City directs farms to establish and implement a Farm Plan under BIMC 18.09.030. Kitsap Conservation District can provide Resource Management / Farm Plan assistance. '+(livestock?'Because you indicated livestock/poultry, the animal-agriculture standards and density/management provisions deserve specific review.':cropfarm?'Because you indicated crop production, the crop-agriculture standards and best-management-practice requirements are especially relevant.':'Answer the crop/livestock questions to narrow which standards matter most.'),'farmplan'));
+   }
    if(/farm|agricultur|orchard|livestock|crop|u[- ]?pick/i.test(t))pol.push(deepRule('BIMC 18.09.020 / 18.09.030(A)','Agricultural uses','Crop agriculture is permitted in many residential zones, while animal agriculture varies by zone and agriculture remains subject to other site rules.','The zoning district, crop vs. animal activity, animal density, shoreline or critical-area location, and whether structures or activities are expanding.','ecode'));
    if(physical){deps.push(row('Building Division','Construction permits and inspections.'));why.push(row('Building review','You indicated physical construction or alteration.'));pol.push(linkrow('building','Building Division','Official building source.'))}
    if(septic){deps.push(row('Kitsap Public Health District','Onsite sewage / building clearance.'));why.push(row('Health review','You indicated septic may serve the property.'));pol.push(linkrow('kpbc','Kitsap building clearance','Official health-district source.'))}
