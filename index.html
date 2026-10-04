@@ -179,6 +179,15 @@ async function preview(){
    if(electrical){deps.push(row('Washington State L&I','Electrical permits and inspections.'));pol.push(linkrow('lni','WA electrical permits','Official state source.'))}
    if(/home occupation/i.test(t))pol.push(deepRule('BIMC 18.09.030(13–14)','Minor / major home occupations','The code distinguishes home occupations by residential character, employees, traffic, parking, on-site sales and impacts.','Nonresident employees, daily trips, parking demand, structural changes, on-site sales, or impacts greater than a normal residence.','home'));
    if(critical)pol.push(deepRule('BIMC Chapter 16.20','Critical Areas','Wetlands, streams, steep slopes, habitat areas and buffers can add setbacks, reports, mitigation or separate review.','Mapped critical areas, field verification, disturbance limits, existing agriculture, and whether expansion is proposed.','critical'));
+   if(grading){
+     deps.push(row('Development Engineering / Public Works','Site assessment, grading, stormwater, drainage and access review.'));
+     pol.push(deepRule('BIMC 15.19','Site Assessment Review','Certain development, redevelopment, clearing, grading and qualifying paving can require site assessment before related permit applications move forward.','The type and amount of site disturbance, paving area, clearing, drainage changes and whether an exemption applies.','siteassessment'));
+     pol.push(deepRule('BIMC 15.20','Surface Water and Stormwater Management','Land-disturbing work can trigger stormwater review and affect other permit paths.','Disturbed area, new or replaced hard surface, drainage impacts and applicable stormwater thresholds.','stormwater'));
+   }
+   if(shoreline){
+     deps.push(row('Planning — Shoreline Review','Shoreline Master Program review may overlay zoning and other approvals.'));
+     pol.push(deepRule('BIMC Chapter 16.12','Shoreline Master Program','Shoreline rules overlay other city regulations within shoreline jurisdiction and can change allowed uses, setbacks, buffers and permit type.','Exact shoreline designation, distance from ordinary high water, proposed use or modification, critical areas and whether an exemption applies.','shoreline'));
+   }
  }else{
    deps.push(row('Local Planning / Zoning','Confirm allowed use, setbacks and environmental constraints.'));
    if(physical)deps.push(row('Local Building Department','Confirm construction permits and inspections.'));
