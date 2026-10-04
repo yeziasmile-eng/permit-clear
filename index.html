@@ -156,6 +156,10 @@ async function preview(){
  const loc=document.getElementById('location').value.trim(),t=document.getElementById('caseText').value.trim(),caseNo=document.getElementById('caseNo').value.trim();
  const zip=getZip(loc),geo=await resolveZip(zip),bi=zip==='98110'||/bainbridge island/i.test(loc);
  const physical=y('physical'),usechange=y('usechange'),publicUse=y('public'),food=y('food'),grading=y('grading'),septic=y('septic'),critical=y('critical'),electrical=y('electrical'),started=y('started');
+ const shoreline=y('shoreline')||/shoreline|waterfront|bulkhead|dock|pier|ohwm/i.test(t);
+ const variance=y('variance')||/variance|setback relief|hardship/i.test(t);
+ const cup=y('cup')||/conditional use|special use/i.test(t);
+ const landdivision=y('landdivision')||/subdivision|short plat|long plat|divide lot|boundary line|lot line/i.test(t);
  const land=usechange||publicUse||/zoning|variance|subdivision|farm|retail|home occupation|shoreline|critical/i.test(t);
  let j='Jurisdiction needs confirmation',jn='Include a 5-digit ZIP code and confirm city limits vs. unincorporated county.';
  if(geo){j=geo.city+', '+geo.abbr+' · '+geo.zip;jn='ZIP-level match; exact permitting authority still needs address-level confirmation.'}
