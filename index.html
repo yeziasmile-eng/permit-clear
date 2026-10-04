@@ -24,11 +24,11 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 <body>
 <header><div class="wrap">
 <h1>PermitClear</h1>
-<div class="lead">Tell us what you want to do. We narrow the scope, identify likely agencies, and point you to the most relevant official policy sources.</div>
+<div class="lead">A focused permit and policy research assistant for Bainbridge Island and Kitsap County.</div>
 </div></header>
 
 <main class="wrap">
-<div class="notice"><b>Private beta testing version.</b> PermitClear is currently intended only for limited product testing, not public promotion or reliance. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
+<div class="notice"><b>Private beta testing version.</b> Current test coverage is focused on Bainbridge Island and Kitsap County. Results are research previews, not official permit determinations. Always confirm final requirements with the responsible local authority.</div>
 
 <section class="card">
 <h2>Ask PermitClear</h2>
@@ -99,11 +99,11 @@ h2{font-size:18px;margin:0 0 10px}.muted,.hint{font-size:13px;color:var(--muted)
 
 <details class="card">
 <summary>About the data</summary>
-<div class="muted" style="margin-top:10px">PermitClear is a limited beta testing tool. Results are generated from public government pages, official municipal-code sources, and public agency guidance. Bainbridge Island / Kitsap currently has the deepest local policy coverage. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
+<div class="muted" style="margin-top:10px">PermitClear is a limited beta testing tool focused on Bainbridge Island and Kitsap County. Results are generated from public City, County, State, municipal-code, GIS, and agency guidance sources. Sources are monitored for availability and changes. The tool is not an official government service, legal opinion, or permit decision, and is not being promoted for general public use at this stage.</div>
 </details>
 </main>
 
-<footer>PermitClear · Limited beta testing only · Not for public promotion · Official sources remain controlling.</footer>
+<footer>PermitClear · Bainbridge Island + Kitsap County beta · Limited testing only · Official sources remain controlling.</footer>
 
 <script>
 const S={
@@ -257,13 +257,14 @@ async function lookupProperty(){
    document.getElementById('propCR').textContent='Check public records';
    document.getElementById('crNote').innerHTML='Recorded covenants can restrict a property even when zoning allows an activity. Search Kitsap County Auditor records, ideally using the tax parcel number, and review the title report when available. <a target="_blank" rel="noopener" href="'+S.auditor.u+'">Search recorded documents</a>.';
   }else{
-   document.getElementById('propZoning').textContent='Connector not loaded';
-   document.getElementById('zoningMeaning').textContent='Zoning typically controls allowed uses, density, setbacks and development standards.';
-   document.getElementById('propCritical').textContent='Connector not loaded';
-   document.getElementById('criticalNote').textContent='Critical-area GIS lookup is currently connected only for the Bainbridge test pack.';
-   document.getElementById('propCR').textContent='Local records check';
-   document.getElementById('crNote').textContent='Recorded covenants are usually found in county land records or a title report; the local connector is not loaded yet.';
-   document.getElementById('propNote').textContent='PermitClear currently has automatic zoning / critical-area lookup connected for Bainbridge Island. Other jurisdictions remain in beta routing mode.';
+   const inKitsap=/kitsap/i.test(g.matched)||region==='WA'&&['98310','98311','98312','98314','98315','98322','98329','98340','98342','98345','98346','98359','98364','98366','98367','98370','98380','98383','98392','98393','98110'].includes(postal);
+   document.getElementById('propZoning').textContent=inKitsap?'Kitsap connector pending':'Outside test area';
+   document.getElementById('zoningMeaning').textContent=inKitsap?'Kitsap County zoning lookup is being added to this beta.':'Current beta coverage is limited to Bainbridge Island and Kitsap County.';
+   document.getElementById('propCritical').textContent=inKitsap?'Kitsap connector pending':'Outside test area';
+   document.getElementById('criticalNote').textContent=inKitsap?'Critical-area lookup for Kitsap County is being added next.':'No out-of-area policy lookup is shown in this test version.';
+   document.getElementById('propCR').textContent=inKitsap?'Check Kitsap records':'Not in test scope';
+   document.getElementById('crNote').innerHTML=inKitsap?'Recorded covenants can be checked through Kitsap County Auditor records and title reports. <a target="_blank" rel="noopener" href="'+S.auditor.u+'">Search recorded documents</a>.':'Recorded covenant lookup is not shown outside the current test area.';
+   document.getElementById('propNote').textContent=inKitsap?'Address appears to be in Kitsap County. This beta currently has deeper automatic property data for Bainbridge Island and is expanding within Kitsap.':'This address appears to be outside the current Bainbridge Island / Kitsap County test area.';
   }
  }catch(e){
   document.getElementById('propJurisdiction').textContent='Needs confirmation';
@@ -344,10 +345,7 @@ function genericDirectAnswer(t,bi){
      else if(isFarm) cards.push(answerCard('Agricultural activity may be allowed, but the exact standards depend on the type and intensity of farming.','Crop agriculture, animal agriculture, accessory sales, visitors and structures can be treated differently under local rules.','ecode'));
    }
  } else {
-   if(intent==='need') cards.push(row('Direct answer','Possibly. Permit requirements depend on the exact city/county jurisdiction and project facts. PermitClear will narrow the likely permit types, then point you to the controlling local source.'));
-   if(intent==='allowed') cards.push(row('Direct answer','Possibly. Zoning and site-specific rules control the answer, so the exact jurisdiction and property facts must be confirmed.'));
-   if(intent==='who') cards.push(row('Direct answer','The responsible agency depends on the jurisdiction and subject. PermitClear will identify the likely planning, building, public works, health, fire, or state authority.'));
-   if(intent==='permit') cards.push(row('Direct answer','PermitClear can narrow the likely permit categories, but the exact local permit type must be confirmed with the responsible jurisdiction.'));
+   cards.push(row('Current beta scope','PermitClear is currently focused on Bainbridge Island and Kitsap County. This address or location is outside the active local policy pack, so no out-of-area policy conclusion is shown.'));
  }
  return cards;
 }
@@ -413,9 +411,7 @@ function instantRefs(){
      out.push(deepRule('BIMC 18.09.005 / 18.09.020','Use classification','The first land-use question is how the proposed activity is classified under the local use tables.','The zoning district, exact activity and project intensity.','ecode'));
    }
  } else {
-   out.push(linkrow('municode','Municode Library','One major municipal-code source used for local ordinance research.'));
-   out.push(linkrow('ecode','eCode360','Another major municipal-code source used by many local governments.'));
-   out.push(linkrow('amlegal','American Legal Publishing','Another nationwide municipal-code library.'));
+   out.push(row('Current beta scope','PermitClear currently provides detailed policy references for Bainbridge Island and Kitsap County only.'));
  }
  document.getElementById('instantPolicies').innerHTML=out.join('');
  document.getElementById('instantCard').style.display='block';
@@ -502,15 +498,12 @@ async function preview(){
      pol.push(deepRule('BIMC Chapter 16.12','Shoreline Master Program','Shoreline rules overlay other city regulations within shoreline jurisdiction and can change allowed uses, setbacks, buffers and permit type.','Exact shoreline designation, distance from ordinary high water, proposed use or modification, critical areas and whether an exemption applies.','shoreline'));
    }
  }else{
-   deps.push(row('Local Planning / Zoning','Confirm allowed use, setbacks and environmental constraints.'));
-   if(physical)deps.push(row('Local Building Department','Confirm construction permits and inspections.'));
-   if(grading)deps.push(row('Public Works / Development Engineering','Confirm grading, drainage and access requirements.'));
-   if(septic||food)deps.push(row('County / Regional Health Department','Confirm septic and/or food requirements.'));
-   if(electrical)deps.push(row('State / local electrical authority','Confirm electrical permit authority.'));
-   why.push(row('Nationwide routing','PermitClear can narrow the likely departments now, but detailed policy interpretation requires a local policy pack.'));
-   pol.push(linkrow('municode','Municode Library','Municipal-code discovery.'));
-   pol.push(linkrow('ecode','eCode360','Municipal-code discovery.'));
-   pol.push(linkrow('amlegal','American Legal Publishing','Municipal-code discovery.'));
+   deps.push(row('Current beta scope','Detailed local review is limited to Bainbridge Island and Kitsap County.'));
+   why.push(row('Out of current test area','PermitClear is not showing generic national policy links in this beta. Add a Bainbridge Island or Kitsap County property to use the local policy pack.'));
+   if(electrical){
+     deps.push(row('Washington State L&I','Electrical permits and inspections may still be relevant because this is a state-level authority.'));
+     pol.push(linkrow('lni','WA electrical permits','State-level source shown only because the question involves electrical work.'));
+   }
  }
  next.push('Confirm the exact permitting jurisdiction for the property.');
  if(caseNo)next.push('Open the existing permit/case record first so the new question matches facts already on file.');
